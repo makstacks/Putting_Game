@@ -7,6 +7,12 @@ def nothing(x):
 
 def detect_mat(cap):
 
+    approx_mat = 0.03
+    approx_holes = 0.003
+
+    kern_mat = 8
+    kern_holes = 15
+
     minx = 0
     minxmin = 75
     maxx = 100
@@ -27,13 +33,13 @@ def detect_mat(cap):
     minandmax = [minx, maxx, miny, maxy, minxmin, maxxmin, n3ay]
 
 
-    # cv2.namedWindow("Trackbars")
-    # cv2.createTrackbar("L-H", "Trackbars", 30, 180, nothing)
-    # cv2.createTrackbar("L-S", "Trackbars", 5, 255, nothing)
-    # cv2.createTrackbar("L-V", "Trackbars", 5, 255, nothing)
-    # cv2.createTrackbar("U-H", "Trackbars", 110, 180, nothing)
-    # cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
-    # cv2.createTrackbar("U-V", "Trackbars", 255, 255, nothing)
+    cv2.namedWindow("Trackbars")
+    cv2.createTrackbar("L-H", "Trackbars", 30, 180, nothing)
+    cv2.createTrackbar("L-S", "Trackbars", 5, 255, nothing)
+    cv2.createTrackbar("L-V", "Trackbars", 5, 255, nothing)
+    cv2.createTrackbar("U-H", "Trackbars", 110, 180, nothing)
+    cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
+    cv2.createTrackbar("U-V", "Trackbars", 255, 255, nothing)
 
     font = cv2.FONT_HERSHEY_COMPLEX
     count = 0
@@ -54,7 +60,7 @@ def detect_mat(cap):
         upper_green = np.array([110, 255, 255])
 
         mask = cv2.inRange(hsv, lower_green, upper_green)
-        kernel = np.ones((8, 8), np.uint8)
+        kernel = np.ones((kern_mat, kern_mat), np.uint8)
         mask = cv2.erode(mask, kernel)
         ret, thresh = cv2.threshold(mask, 80, 255, cv2.THRESH_BINARY)
 
@@ -72,7 +78,7 @@ def detect_mat(cap):
             area = cv2.contourArea(cnt)
             #if area < 200:
                # contours[cnt] = 0
-            approx = cv2.approxPolyDP(cnt, 0.03*cv2.arcLength(cnt, True), True)
+            approx = cv2.approxPolyDP(cnt, approx_mat*cv2.arcLength(cnt, True), True)
             x = approx.ravel()[0]
             y = approx.ravel()[1]
 
@@ -131,7 +137,6 @@ def detect_mat(cap):
         cv2.fillPoly(frame, pts=[polyfill4], color=(255,255,255))
         cv2.fillPoly(frame, pts=[polyfill5], color=(255,255,255))
 
-
         frame2 = frame.copy()
         hsv2 = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
@@ -139,7 +144,7 @@ def detect_mat(cap):
         upper_hole = np.array([147, 255, 255])
 
         mask2 = cv2.inRange(hsv2, lower_hole, upper_hole)
-        kernel = np.ones((18, 18), np.uint8)
+        kernel = np.ones((kern_holes, kern_holes), np.uint8)
         mask2 = cv2.erode(mask2, kernel)
 
         points = []
@@ -164,11 +169,11 @@ def detect_mat(cap):
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            approx = cv2.approxPolyDP(cnt, 0.001*cv2.arcLength(cnt, True), True)
+            approx = cv2.approxPolyDP(cnt, approx_holes*cv2.arcLength(cnt, True), True)
             x = approx.ravel()[0]
             y = approx.ravel()[1]
 
-            if area > 200:
+            if area > 150:
                 #cv2.drawContours(frame2, [approx], 0, (0, 0, 255), 3)
 
                 # if len(approx) == 3:
@@ -179,17 +184,13 @@ def detect_mat(cap):
                     #cv2.putText(frame2, "Circle", (x, y), font, 1, (0, 0, 0))
                     id_point_candidates.append(cnt)
 
-
-            # for cnt in contours:
-            #     if cv2.contour_sanity_check(cnt, cv2.im.shape[0], point_d=0.02):
-            #         id_point_candidates.append(cnt)
-            #     elif cv2.contour_sanity_check(cnt, cv2.im.shape[0], point_d=0.01):
-            #         small_point_candidates.append(cnt)
             for cnt in id_point_candidates:
                 x, y, w, h = cv2.boundingRect(cnt)
                 ellipse = cv2.fitEllipse(cnt)
                 #print(ellipse)
                 points.append(cnt[:])
+                origins.append((x, y))
+                ellipses.append(ellipse)
 
                 ex = round(ellipse[0][0])
                 ey = round(ellipse[0][1])
@@ -200,7 +201,7 @@ def detect_mat(cap):
                 H_ax_l = (Hr, Hh)
 
                 # if hole is within our limits
-                if w_matend / 6 < Hr < w_matend / 3:
+                if w_matend / 12 < Hr < w_matend / 3:
 # store in first array if small hole and second (index 1) if big hole
                     if ex < maxx - w_matend / 2:
                         H1_cx = ex
@@ -214,13 +215,9 @@ def detect_mat(cap):
                         r2 = Hr
                         h2 = Hh
                         H2_ax_l = (r2, h2)
-
-
-                origins.append((x, y))
-                ellipses.append(ellipse)
                 #cv2.ellipse(frame, origins[cnt], )
-                cv2.rectangle(frame2, (x, y), (x + w, y + h), (0, 0, 255), 1)
-                cv2.ellipse(frame2, (ex, ey), H_ax_l, angle, startAngle, endAngle, (255, 0, 0), 3)
+                #cv2.rectangle(frame2, (x, y), (x + w, y + h), (0, 0, 255), 1)
+                    cv2.ellipse(frame2, (ex, ey), H_ax_l, angle, startAngle, endAngle, (255, 0, 0), 3)
 
         minandmax = [minx, maxx, miny, maxy, minxmin, maxxmin, n3ay, H1_cx, H1_cy, H1_ax_l, r1, h1, H2_cx, H2_cy, H2_ax_l, r2, h2]
         cv2.putText(frame, "ENTER to proceed", (20, 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
