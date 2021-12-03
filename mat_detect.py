@@ -220,6 +220,7 @@ def detect_mat(cap):
                 cv2.ellipse(frame2, (ex, ey), H_ax_l, angle, startAngle, endAngle, (255, 0, 0), 3)
 
         minandmax = [minx, maxx, miny, maxy, minxmin, maxxmin, n3ay, H1_cx, H1_cy, H1_ax_l, r1, h1, H2_cx, H2_cy, H2_ax_l, r2, h2]
+        cv2.putText(frame, "ENTER to proceed", (20, 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
         # Let's see the results:
         cv2.imshow("Frame for mat detect", frame)
         cv2.imshow("Frame", frame2)
