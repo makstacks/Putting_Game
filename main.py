@@ -281,12 +281,6 @@ def start_game(cap):
     sz3n1 = (n5x, sz3n1y)
     sz3n2 = (n6x, sz3n1y)
 
-    # define ellipses parameters for holes
-    centreH1 = (H1_cx, H1_cy)
-    centreH2 = (H2_cx, H2_cy)
-
-    #END of assigning nodes etc
-
     angle = 0
     startAngle = 0
     endAngle = 360
@@ -372,7 +366,6 @@ def start_game(cap):
 
         drawing = np.zeros((hd, wd, 3), dtype=np.uint8)
         drawing.fill(255)
-
 
         cv2.putText(drawing, str(game_string), (20, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
         l1sc = cv2.line(drawing, (0, nameyst), (wd, nameyst), ls_col, ls_thick)
@@ -555,10 +548,6 @@ def start_game(cap):
                     H2streak_count = 0
                     shot_record.append(0)
                     miss_bool = True
-                    # print("Holes = " + str(hole1_count + hole2_count) +
-                    #       "  (" + str(hole1_count) + "s " + str(hole2_count) + "b)" )
-                    # print("Shots missed = " + str(missed_count))
-                    # print("")
                     print("miss wide/far")
 
                 elif minx < cx < maxx and cy < H2_yu - 2 * r2 and cyo[key][-1] < cyo[key][-2] < cyo[key][-3]:
@@ -604,14 +593,8 @@ def start_game(cap):
                     shot_record.append(2)
                     big_hole_bool = True
                     hole_bool = True
-                    # print("Total Shots = " + str(shot_count))
-                    # print("Holes = " + str(hole1_count + hole2_count) +
-                    #       "  (" + str(hole1_count) + "s " + str(hole2_count) + "b)" )
-                    # print("Shots missed = " + str(missed_count))
-                    # print("")
                     print("big hole")
-                    #print(object_shot[-1], str(((cyls - H2_cy)**2)**0.5), r2, str(((cxls - H2_cx)**2)**0.5), h2)
-                    #print(cxls, cyls)
+
                     print(H2_cx, H2_cy)
                 else:
                     missed_count += 1
@@ -621,10 +604,10 @@ def start_game(cap):
                     object_missed.append(key)
                     shot_record.append(0)
                     miss_bool = True
-                    print("missed, dist to H1:")
-                    print(object_shot[-1], str(((cxls - H1_cx)**2)**0.5), str(((cyls - H1_cy)**2)**0.5), r2, h2)
-                    print("dist to H2:")
-                    print(object_shot[-1], str(((cxls - H2_cx)**2)**0.5), str(((cyls - H2_cy)**2)**0.5), r2, h2)
+                    # print("missed, dist to H1:")
+                    # print(object_shot[-1], str(((cxls - H1_cx)**2)**0.5), str(((cyls - H1_cy)**2)**0.5), r2, h2)
+                    # print("dist to H2:")
+                    # print(object_shot[-1], str(((cxls - H2_cx)**2)**0.5), str(((cyls - H2_cy)**2)**0.5), r2, h2)
 
         if miss_bool or hole_bool:
             shot_bool = False
@@ -978,5 +961,3 @@ def start_game(cap):
     cv2.destroyAllWindows()
 
 start_game(cap)
-
-
