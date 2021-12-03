@@ -164,7 +164,7 @@ def detect_mat(cap):
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
-            approx = cv2.approxPolyDP(cnt, 0.01*cv2.arcLength(cnt, True), True)
+            approx = cv2.approxPolyDP(cnt, 0.001*cv2.arcLength(cnt, True), True)
             x = approx.ravel()[0]
             y = approx.ravel()[1]
 
@@ -198,19 +198,22 @@ def detect_mat(cap):
                 Hh = round(ellipse[1][0] / 2)
 
                 H_ax_l = (Hr, Hh)
+
+                # if hole is within our limits
+                if w_matend / 6 < Hr < w_matend / 3:
 # store in first array if small hole and second (index 1) if big hole
-                if ex < maxx - w_matend / 2:
-                    H1_cx = ex
-                    H1_cy = ey
-                    r1 = Hr
-                    h1 = Hh
-                    H1_ax_l = (r1, h1)
-                else:
-                    H2_cx = ex
-                    H2_cy = ey
-                    r2 = Hr
-                    h2 = Hh
-                    H2_ax_l = (r2, h2)
+                    if ex < maxx - w_matend / 2:
+                        H1_cx = ex
+                        H1_cy = ey
+                        r1 = Hr
+                        h1 = Hh
+                        H1_ax_l = (r1, h1)
+                    else:
+                        H2_cx = ex
+                        H2_cy = ey
+                        r2 = Hr
+                        h2 = Hh
+                        H2_ax_l = (r2, h2)
 
 
                 origins.append((x, y))
@@ -221,7 +224,8 @@ def detect_mat(cap):
 
         minandmax = [minx, maxx, miny, maxy, minxmin, maxxmin, n3ay, H1_cx, H1_cy, H1_ax_l, r1, h1, H2_cx, H2_cy, H2_ax_l, r2, h2]
         cv2.putText(frame, "ENTER to proceed", (20, 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
-        # Let's see the results:
+
+    # Let's see the results:
         cv2.imshow("Frame for mat detect", frame)
         cv2.imshow("Frame", frame2)
         cv2.imshow("Mask", mask2)
