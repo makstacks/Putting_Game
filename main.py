@@ -36,7 +36,11 @@ def is_in_hole(x, y, h, k, rx, ry):
 
 def start_game(cap):
     # get user inputs for number of players/teams/game modes
-    game_mode = input("Select game mode\n [F] Free Play\n [P] Points Game\n> ")
+    #game_mode = input("Select game mode\n [F] Free Play\n [P] Points Game\n> ")
+    #game_mode = "F"
+    game_mode = "P"
+    num_players = 4
+    team_no = 2
     if game_mode != "F" and game_mode != "f" and game_mode != "P" and game_mode != "p":
         start_game(cap)
     if game_mode == "f" or game_mode == "F":
@@ -47,16 +51,14 @@ def start_game(cap):
     if game_mode == "p" or game_mode == "P":
         game_mode = "P"
         game_string = "POINTS GAME"
-    if game_mode != "F":
-        num_players = int(input("Enter number of players\n> "))
-        if num_players < 3:
-            team_no = num_players
-        else:
-            team_no = int(input("Enter number of Teams\n> "))
+    # if game_mode != "F":
+    #     num_players = int(input("Enter number of players\n> "))
+    #     if num_players < 3:
+    #         team_no = num_players
+    #     else:
+    #         team_no = int(input("Enter number of Teams\n> "))
 
-    #game_mode = "F"
-    #game_mode = "P"
-    rounds = 5
+    rounds = 3
     shotspround = 3
 
     players = [] * num_players
@@ -300,6 +302,8 @@ def start_game(cap):
     hd = 720
     wd = 1280
     scorecard_fs = 2
+    if num_players > 4:
+        scorecard_fs = 1.5
     stat_fs = 1
     stat_th = 2
     stat_indent = 280
@@ -312,7 +316,7 @@ def start_game(cap):
     scrygap2 = scrygap1 + 120
     scrygap3 = scrygap2 + smdif
     sc_end = nameyen + scrygap3 + smdif + smdif
-    p_dist = round((wd - 280) / num_players)
+    p_dist = round((wd - stat_indent) / (num_players))
     p_name_y = 80
     staty = []
     staty.append(nameyen + statysen)
@@ -330,9 +334,6 @@ def start_game(cap):
     hb = 80
     hs = hb / 2
     # if not one player per team ie team game we want extra rows for total team scores
-
-    if team_bool:
-        wd = wd + 2 * hb
 
     # defining lines for scoreboard
     num_sec = num_players + team_no
@@ -382,14 +383,14 @@ def start_game(cap):
         l4sc = cv2.line(drawing, (0, nameyen + scrygap2), (wd, nameyen + scrygap2), ls_col, ls_thick)
         l5sc = cv2.line(drawing, (0, nameyen + scrygap3), (wd, nameyen + scrygap3), ls_col, ls_thick)
         l6sc = cv2.line(drawing, (0, nameyen + scrygap3 + smdif), (wd, nameyen + scrygap3 + smdif), ls_col, ls_thick)
-        l7sc = cv2.line(drawing, (0, nameyen + scrygap3 + 2 * smdif), (wd, nameyen + scrygap3 + 2 * smdif), ls_col, ls_thick + 5)
+        l7sc = cv2.line(drawing, (0, sc_end), (wd, sc_end), ls_col, ls_thick + 5)
         stat1 = cv2.putText(drawing, "POINTS", (statxsen, staty[0]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
         stat2 = cv2.putText(drawing, "HOLES MADE", (statxsen, staty[1]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
         stat3 = cv2.putText(drawing, "SHOT %", (statxsen, staty[2]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
         stat4 = cv2.putText(drawing, "POINTS/SHOT", (statxsen, staty[3]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
         stat5 = cv2.putText(drawing, "MAX. STREAK", (statxsen, staty[4]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
 
-        for p in range(num_players + 1):
+        for p in range(num_players):
             lsp = cv2.line(drawing, (280 + p_dist * p, nameyst + 20), (280 + p_dist * p, sc_end), ls_col, pls_thick)
 
         # if num_players != team_no:
@@ -417,14 +418,14 @@ def start_game(cap):
             teaml_thick = 15
             teaml_fc = (0, 0, 0)
             if team_ref == 0:
-                tline1x = 280 + (p_dist * len(teams[team_ref]))
+                tline1x = stat_indent + (p_dist * len(teams[team_ref]))
                 tline1 = cv2.line(drawing, (tline1x, nameyst), (tline1x, hd), teaml_fc, teaml_thick)
             elif team_ref == 1:
-                tline2x = 280 + (p_dist * (len(teams[team_ref]) + len(teams[team_ref - 1])))
+                tline2x = stat_indent + (p_dist * (len(teams[team_ref]) + len(teams[team_ref - 1])))
                 #tline1 = cv2.line(drawing, (0, 2 * hb + len(teams[team_ref - 1])), (wd, 2 * hb + len(teams[team_ref])), font_col, 5)
                 tline2 = cv2.line(drawing, (tline2x, nameyst), (tline2x, hd), teaml_fc, teaml_thick)
             elif team_ref == 2:
-                tline3x = 280 + (p_dist * (len(teams[team_ref]) + len(teams[team_ref - 1]) + len(teams[team_ref - 2])))
+                tline3x = stat_indent + (p_dist * (len(teams[team_ref]) + len(teams[team_ref - 1]) + len(teams[team_ref - 2])))
                 tline3 = cv2.line(drawing, (tline3x, nameyst), (tline3x, hd), teaml_fc, teaml_thick)
 
 
@@ -704,7 +705,6 @@ def start_game(cap):
         #         streak_highscores[2][1] = streak_count
         #         streak_broke3 = True
 
-
         for i in range(num_players):
             score_xpos = round(stat_indent + p_dist / 3 + i * p_dist)
             cv2.putText(drawing, str(sum(p_pts[i])), (score_xpos, staty[0]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
@@ -733,11 +733,19 @@ def start_game(cap):
             for team in range(team_no):
                 if team_bool:
                     t_scores[team] = sum(t_pts[team])
+                    first_mem = teams[team][0]
                     last_mem = teams[team][-1]
                     len_team = len(teams[team])
                     tsc_xpos = round(stat_indent + last_mem * p_dist - len_team * p_dist / 2 )
-                    cv2.putText(drawing, "TOTAL PTS", (statxsen, hd - 30), cv2.FONT_HERSHEY_DUPLEX, 1.5, font_col, 4)
-                    cv2.putText(drawing, str(t_scores[team]), (tsc_xpos, hd - 30), cv2.FONT_HERSHEY_DUPLEX, 2, font_col, 2)
+                    cv2.putText(drawing, "TEAM PTS", (statxsen, hd - 30), cv2.FONT_HERSHEY_DUPLEX, 1.5, font_col, 4)
+                    cv2.putText(drawing, str(t_scores[team]), (round(tsc_xpos - p_dist / 3), hd - 30), cv2.FONT_HERSHEY_DUPLEX, 2, font_col, 2)
+                    teamboxsensx = round(p_dist / 4)
+                    teamboxsensy = 30
+                    w = round(len_team * p_dist - teamboxsensx)
+                    h = round(hd - sc_end - teamboxsensy)
+                    x = round(stat_indent + ((first_mem - 1) * p_dist) + teamboxsensx / 2)
+                    y = round(sc_end + teamboxsensy / 2)
+                    cv2.rectangle(drawing, (x, y), (x + w, y + h), (0, 0, 255), 3)
 
             # if game finished we want to find winner
             if hole1_count + hole2_count + missed_count == num_players * shotspround * rounds:
@@ -974,3 +982,5 @@ def start_game(cap):
     cv2.destroyAllWindows()
 
 start_game(cap)
+
+
