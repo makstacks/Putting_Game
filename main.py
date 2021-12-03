@@ -703,10 +703,18 @@ def start_game(cap):
             score_xpos = round(280 + p_dist / 2 + i * p_dist) - 20
             cv2.putText(drawing, str(sum(p_pts[i])), (score_xpos, staty[0]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
             cv2.putText(drawing, str(sum(H_count_a[i])), (score_xpos, staty[1]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
-            cv2.putText(drawing, "/" + str(sum(shot_count_a[i])), (score_xpos + 40, staty[1] + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 2)
+            cv2.putText(drawing, " /" + str(sum(shot_count_a[i])), (score_xpos + 40, staty[1] + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 2)
             cv2.putText(drawing, str(shot_pcnt_a[i][-1]), (score_xpos, staty[2]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
             cv2.putText(drawing, str(pps_a[i][-1]), (score_xpos, staty[3]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
             cv2.putText(drawing, str(max_streak_a[i][0]), (score_xpos, staty[4]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            if num_players < 5:
+                xholsens = 60
+                yholsens = 30
+
+                h1circ = cv2.circle(drawing, (round(score_xpos + p_dist / 3), staty[1] - yholsens), 4, (0, 0, 0), 8)
+                h2circ = cv2.circle(drawing, (round(score_xpos + p_dist / 3) + xholsens, staty[1] - yholsens), 6, (0, 0, 0), 12)
+                cv2.putText(drawing, "x" + str(sum(H1_count_a[i])), (round(score_xpos + p_dist / 3.5), staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
+                cv2.putText(drawing, "x" + str(sum(H2_count_a[i])), (round(score_xpos + p_dist / 3.5) + xholsens + 10, staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
             if sum(streak_count_a[i]) > 1:
                 cv2.putText(drawing, "x" + str(sum(streak_count_a[i])), (round(score_xpos - p_dist / 6), nameyen - 25), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, (50, 100, 255), 3)
 
