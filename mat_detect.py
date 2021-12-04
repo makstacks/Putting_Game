@@ -34,10 +34,10 @@ def detect_mat(cap):
 
 
     cv2.namedWindow("Trackbars")
-    cv2.createTrackbar("L-H", "Trackbars", 30, 180, nothing)
-    cv2.createTrackbar("L-S", "Trackbars", 5, 255, nothing)
-    cv2.createTrackbar("L-V", "Trackbars", 5, 255, nothing)
-    cv2.createTrackbar("U-H", "Trackbars", 110, 180, nothing)
+    cv2.createTrackbar("L-H", "Trackbars", 37, 180, nothing)
+    cv2.createTrackbar("L-S", "Trackbars", 0, 255, nothing)
+    cv2.createTrackbar("L-V", "Trackbars", 0, 255, nothing)
+    cv2.createTrackbar("U-H", "Trackbars", 150, 180, nothing)
     cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
     cv2.createTrackbar("U-V", "Trackbars", 255, 255, nothing)
 
@@ -130,18 +130,28 @@ def detect_mat(cap):
         polyfill2 = np.array([[0, maxy], [minx, maxy], [minx, height], [0, height]])
         polyfill3 = np.array([[maxx, maxy], [width, maxy], [width, height], [maxx, height]])
         polyfill4 = np.array([[maxxmin, 0], [width, 0], [width, maxy], [maxx, maxy]])
-        polyfill5 = np.array([[minx, maxy], [maxx, maxy], [maxx, height], [minx, height]])
+        #polyfill5 = np.array([[minx, maxy], [maxx, maxy], [maxx, height], [minx, height]])
         cv2.fillPoly(frame, pts=[polyfill1], color=(255,255,255))
         cv2.fillPoly(frame, pts=[polyfill2], color=(255,255,255))
         cv2.fillPoly(frame, pts=[polyfill3], color=(255,255,255))
         cv2.fillPoly(frame, pts=[polyfill4], color=(255,255,255))
-        cv2.fillPoly(frame, pts=[polyfill5], color=(255,255,255))
+        #cv2.fillPoly(frame, pts=[polyfill5], color=(255,255,255))
 
         frame2 = frame.copy()
         hsv2 = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        lower_hole = np.array([37, 0, 0])
-        upper_hole = np.array([147, 255, 255])
+
+        l_h = cv2.getTrackbarPos("L-H", "Trackbars")
+        l_s = cv2.getTrackbarPos("L-S", "Trackbars")
+        l_v = cv2.getTrackbarPos("L-V", "Trackbars")
+        u_h = cv2.getTrackbarPos("U-H", "Trackbars")
+        u_s = cv2.getTrackbarPos("U-S", "Trackbars")
+        u_v = cv2.getTrackbarPos("U-V", "Trackbars")
+
+        # lower_hole = np.array([37, 10, 10])
+        # upper_hole = np.array([150, 255, 255])
+        lower_hole = np.array([l_h, l_s, l_v])
+        upper_hole = np.array([u_h, u_s, u_v])
 
         mask2 = cv2.inRange(hsv2, lower_hole, upper_hole)
         kernel = np.ones((kern_holes, kern_holes), np.uint8)
@@ -220,7 +230,7 @@ def detect_mat(cap):
                     cv2.ellipse(frame2, (ex, ey), H_ax_l, angle, startAngle, endAngle, (255, 0, 0), 3)
 
         minandmax = [minx, maxx, miny, maxy, minxmin, maxxmin, n3ay, H1_cx, H1_cy, H1_ax_l, r1, h1, H2_cx, H2_cy, H2_ax_l, r2, h2]
-        cv2.putText(frame, "ENTER to proceed", (20, 50), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 255), 2)
+        cv2.putText(frame2, "Press ENTER to proceed", (20, 50), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 0, 255), 2)
 
     # Let's see the results:
         cv2.imshow("Frame for mat detect", frame)
