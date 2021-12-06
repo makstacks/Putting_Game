@@ -1,13 +1,7 @@
-import cv2
 from tracker import *
 from mat_detect import *
-#from hole_detect import *
-import game_calculator
-import imutils
-import pickle
 import time
-from collections import deque
-from imutils.video import VideoStream
+
 
 cap = cv2.VideoCapture("C:\\Users\\Salmonservices\\putting_game\\bigholetest.mp4")
 #cap = cv2.VideoCapture(0)
@@ -797,7 +791,7 @@ def start_game(cap):
 
         cv2.imshow("frame for main", frame)
         cv2.imshow("Scoreboard", drawing)
-        
+
         #cv2.imshow("mask2", mask2)
         #cv2.imshow("ROI", roi)
 
