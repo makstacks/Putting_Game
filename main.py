@@ -8,9 +8,9 @@ import pickle
 import time
 from collections import deque
 from imutils.video import VideoStream
-#
+
 cap = cv2.VideoCapture("C:\\Users\\Salmonservices\\putting_game\\bigholetest.mp4")
-cap = cv2.VideoCapture(0)
+#cap = cv2.VideoCapture(0)
 time.sleep(2)
 
 # functions to determine if two lines intersect
@@ -39,8 +39,8 @@ def start_game(cap):
     #game_mode = input("Select game mode\n [F] Free Play\n [P] Points Game\n> ")
     #game_mode = "F"
     game_mode = "P"
-    num_players = 4
-    team_no = 2
+    num_players = 6
+    team_no = 3
     if game_mode != "F" and game_mode != "f" and game_mode != "P" and game_mode != "p":
         start_game(cap)
     if game_mode == "f" or game_mode == "F":
@@ -276,16 +276,7 @@ def start_game(cap):
     node5 = (n5x, n5y)
     node6 = (n6x, n6y)
 
-    roi1 = (n3x, n1y)
-    roi2 = (n4x, n1y)
-    roi3 = (n3x, n3y)
-    roi4 = (n4x, n3y)
-
- # defining nodes for shot zones
-    sz1n1 = node1
-    sz1n2 = node2
-    sz2n1 = node5
-    sz2n2 = node6
+ # defining shot zones
     sz3n1y = n5y + szy_inter
     sz3n1 = (n5x, sz3n1y)
     sz3n2 = (n6x, sz3n1y)
@@ -372,9 +363,10 @@ def start_game(cap):
         cv2.fillPoly(frame, pts=[polyfill4], color=(255,255,255))
         cv2.fillPoly(frame, pts=[polyfill5], color=(255,255,255))
 
+# define scoreboard window
         drawing = np.zeros((hd, wd, 3), dtype=np.uint8)
         drawing.fill(255)
-
+# adding lines, scores, names etc. to scoreboard
         cv2.putText(drawing, str(game_string), (20, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
         l1sc = cv2.line(drawing, (0, nameyst), (wd, nameyst), ls_col, ls_thick)
         l2sc = cv2.line(drawing, (280, nameyen), (wd, nameyen), ls_col, pls_thick)
@@ -393,11 +385,6 @@ def start_game(cap):
         for p in range(num_players):
             lsp = cv2.line(drawing, (280 + p_dist * p, nameyst + 20), (280 + p_dist * p, sc_end), ls_col, pls_thick)
 
-        # if num_players != team_no:
-        #     for i in range(num_sec):
-        #         ls1 = cv2.line(drawing, (0, 2*hb + (i + 1) * hb), (wd, 2 * hb + (i + 1) * hb), ls_col, ls_thick)
-        # el
-
         for player in range(1, num_players + 1):
             for team in range(team_no):
                 #print(teams[team])
@@ -410,9 +397,6 @@ def start_game(cap):
                     else:
                         cv2.putText(drawing, str("P" + str(player)), (p_xpos, 140), cv2.FONT_HERSHEY_COMPLEX,
                                     p_fs * 0.75, (0, 0, 0), 3)
-                # elif num_players == 1:
-                #     cv2.putText(drawing, "Tiger", (t_al_x - 40, round(2*hb + hb - hb/4)), cv2.FONT_HERSHEY_COMPLEX, 1.4, (0, 0, 0), 3)
-
 
         for team_ref in range(team_no - 1):
             teaml_thick = 15
@@ -427,6 +411,48 @@ def start_game(cap):
             elif team_ref == 2:
                 tline3x = stat_indent + (p_dist * (len(teams[team_ref]) + len(teams[team_ref - 1]) + len(teams[team_ref - 2])))
                 tline3 = cv2.line(drawing, (tline3x, nameyst), (tline3x, hd), teaml_fc, teaml_thick)
+
+        for i in range(num_players):
+            score_xpos = round(stat_indent + p_dist / 3.5 + i * p_dist)
+            cv2.putText(drawing, str(sum(p_pts[i])), (score_xpos, staty[0]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            cv2.putText(drawing, str(sum(H_count_a[i])), (score_xpos - 20, staty[1]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            cv2.putText(drawing, "/" + str(sum(shot_count_a[i])), (score_xpos + 40, staty[1] + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 2)
+            cv2.putText(drawing, str(shot_pcnt_a[i][-1]), (score_xpos, staty[2]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            cv2.putText(drawing, str(pps_a[i][-1]), (score_xpos, staty[3]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            cv2.putText(drawing, str(max_streak_a[i][0]), (score_xpos, staty[4]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            if num_players < 4:
+                xholsens = 60
+                yholsens = 30
+                h1circ = cv2.circle(drawing, (round(score_xpos + p_dist / 3), staty[1] - yholsens), 4, (0, 0, 0), 8)
+                h2circ = cv2.circle(drawing, (round(score_xpos + p_dist / 3) + xholsens, staty[1] - yholsens), 6, (0, 0, 0), 12)
+                cv2.putText(drawing, "x" + str(sum(H1_count_a[i])), (round(score_xpos + p_dist / 3.5), staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
+                cv2.putText(drawing, "x" + str(sum(H2_count_a[i])), (round(score_xpos + p_dist / 3.5) + xholsens + 20, staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
+            if sum(streak_count_a[i]) > 1:
+                cv2.putText(drawing, "x" + str(sum(streak_count_a[i])), (round(score_xpos - p_dist / 6), nameyst + 40), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.25, (50, 100, 255), 5)
+
+        if game_mode == "P":
+            if num_players > 1:
+                cv2.putText(drawing, team_string, (500, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
+                #cv2.putText(drawing, "PLAYER " + str(p_ind) + "'s turn", (round(wd / 3), round(4 * hb / 3)), cv2.FONT_HERSHEY_COMPLEX, scorecard_fs, (0, 0, 0), 3)
+            cv2.putText(drawing, ">", (300 + (p_ind - 1) * p_dist, 140), cv2.FONT_HERSHEY_COMPLEX, 2, (50, 50, 255), 15)
+            cv2.putText(drawing, "ROUND " + str(cur_rnd) + "/" + str(rounds), (925, 25), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
+            cv2.putText(drawing, "SHOTS TAKEN  " + str(p_shots) + "/" + str(shotspround), ((925, 55)), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
+            for team in range(team_no):
+                if team_bool:
+                    t_scores[team] = sum(t_pts[team])
+                    first_mem = teams[team][0]
+                    last_mem = teams[team][-1]
+                    len_team = len(teams[team])
+                    tsc_xpos = round(stat_indent + last_mem * p_dist - len_team * p_dist / 2 )
+                    cv2.putText(drawing, "TEAM PTS", (statxsen, hd - 30), cv2.FONT_HERSHEY_DUPLEX, 1.5, font_col, 4)
+                    cv2.putText(drawing, str(t_scores[team]), (round(tsc_xpos - p_dist / 3), hd - 30), cv2.FONT_HERSHEY_DUPLEX, 2, font_col, 2)
+                    teamboxsensx = round(p_dist / 4)
+                    teamboxsensy = 30
+                    w = round(len_team * p_dist - teamboxsensx)
+                    h = round(hd - sc_end - teamboxsensy)
+                    x = round(stat_indent + ((first_mem - 1) * p_dist) + teamboxsensx / 2)
+                    y = round(sc_end + teamboxsensy / 2)
+                    cv2.rectangle(drawing, (x, y), (x + w, y + h), (0, 0, 255), 3)
 
 
         # 1. Object Detection
@@ -664,89 +690,6 @@ def start_game(cap):
                 if max_str_temp > max_streak_a[player][0]:
                     max_streak_a[player][0] = max_str_temp
 
-        # if game_mode == "F":
-        #     game_stats = game_calculator.game_calc(teams, shot_record, game_mode)
-        #     shots_taken = game_stats[0]
-        #     small_holes = game_stats[1]
-        #     big_holes = game_stats[2]
-        #     total_holes = game_stats[3]
-        #     l_align = 2 * hb
-        #     startytext = 40
-        #     text_pos = (l_align, startytext)
-        #     cv2.putText(drawing, str(hole1_count + hole2_count), (l_align + 15, round(p_name_y - 35)), cv2.FONT_HERSHEY_DUPLEX, 1.4, font_col, 3)
-        #     cv2.putText(drawing, "/" + str(shot_count), (round(l_align + hb/2 - 10), p_name_y - 5), cv2.FONT_HERSHEY_DUPLEX, 0.8, font_col, 3)
-        #     #if shot_count > 0:
-        #     if shot_pcnt < 100:
-        #         cv2.putText(drawing, str(shot_pcnt) + "%", (round(l_align + hb + 10), round(p_name_y - 20)), cv2.FONT_HERSHEY_DUPLEX, 1.2, font_col, 3)
-        #     else:
-        #         cv2.putText(drawing, str(shot_pcnt) + "%", (round(l_align + hb + 5), round(p_name_y - 20)), cv2.FONT_HERSHEY_DUPLEX, 1.0, font_col, 2)
-        #     cv2.putText(drawing, str(sum_points), (l_align + 15 + 3 * hb, round(p_name_y - 40)), cv2.FONT_HERSHEY_DUPLEX, 1, font_col, 3)
-        #     cv2.putText(drawing, "PTS", (l_align + 10 + 3 * hb, round(p_name_y)), cv2.FONT_HERSHEY_DUPLEX, 1, font_col, 3)
-        #     cv2.putText(drawing, "PTS/SHOT: " + str(pps), (round(l_align + 3 * hb/2 - 10), round(hd + hb /3 + 10)), cv2.FONT_HERSHEY_DUPLEX, 1, font_col, 3)
-        #     h1circ = cv2.circle(drawing, (round(l_align + 25 + 3 * hb - hb), round(p_name_y - 10)), 4, (0, 0, 0), 8)
-        #     h2circ = cv2.circle(drawing, (round(l_align + 70 + 3 * hb - hb), round(p_name_y - 10)), 6, (0, 0, 0), 12)
-        #     # else:
-        #     #     cv2.putText(drawing, str("0 %"), (l_align, 155), cv2.FONT_HERSHEY_DUPLEX, 1, font_colour, 2)
-        #     #     cv2.putText(drawing, str("Points: 0" + str(sum(p_pts[0]))), (l_align, 170), cv2.FONT_HERSHEY_DUPLEX, 1, font_colour, 2)
-        #     if hole1_count or hole2_count < 10:
-        #         cv2.putText(drawing, str("x" + str(hole1_count) + " x" + str(hole2_count)), (round(l_align + 5 + 2 * hb), round(p_name_y - 40)), cv2.FONT_HERSHEY_DUPLEX, 0.8, font_col, 3)
-        #     else:
-        #         cv2.putText(drawing, str("x" + str(hole1_count) + " x" + str(hole2_count)), (round(l_align + 5 + 2 * hb), round(p_name_y - 40)), cv2.FONT_HERSHEY_DUPLEX, 0.6, font_col, 3)
-        #     if streak_count > 1:
-        #         cv2.putText(drawing, str("STREAK x" + str(streak_count)), (t_al_x - 25, round(hd + hb /3 + 10)), cv2.FONT_HERSHEY_DUPLEX, 1, (50, 50, 255), 3)
-        #         # calculate Streak highscore
-        #     if streak_count > streak_highscores[0][1]:
-        #         streak_highscores[0][1] = streak_count
-        #         streak_broke1 = True
-        #     elif streak_count > streak_highscores[1][1]:
-        #         streak_highscores[1][1] = streak_count
-        #         streak_broke2 = True
-        #     elif streak_count > streak_highscores[2][1]:
-        #         streak_highscores[2][1] = streak_count
-        #         streak_broke3 = True
-
-        for i in range(num_players):
-            score_xpos = round(stat_indent + p_dist / 3 + i * p_dist)
-            cv2.putText(drawing, str(sum(p_pts[i])), (score_xpos, staty[0]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
-            cv2.putText(drawing, str(sum(H_count_a[i])), (score_xpos - 20, staty[1]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
-            cv2.putText(drawing, "/" + str(sum(shot_count_a[i])), (score_xpos + 40, staty[1] + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 2)
-            cv2.putText(drawing, str(shot_pcnt_a[i][-1]), (score_xpos, staty[2]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
-            cv2.putText(drawing, str(pps_a[i][-1]), (score_xpos, staty[3]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
-            cv2.putText(drawing, str(max_streak_a[i][0]), (score_xpos, staty[4]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
-            if num_players < 4:
-                xholsens = 60
-                yholsens = 30
-                h1circ = cv2.circle(drawing, (round(score_xpos + p_dist / 3), staty[1] - yholsens), 4, (0, 0, 0), 8)
-                h2circ = cv2.circle(drawing, (round(score_xpos + p_dist / 3) + xholsens, staty[1] - yholsens), 6, (0, 0, 0), 12)
-                cv2.putText(drawing, "x" + str(sum(H1_count_a[i])), (round(score_xpos + p_dist / 3.5), staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
-                cv2.putText(drawing, "x" + str(sum(H2_count_a[i])), (round(score_xpos + p_dist / 3.5) + xholsens + 20, staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
-            if sum(streak_count_a[i]) > 1:
-                cv2.putText(drawing, "x" + str(sum(streak_count_a[i])), (round(score_xpos - p_dist / 6), nameyst + 40), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.25, (50, 100, 255), 5)
-
-        if game_mode == "P":
-            if num_players > 1:
-                cv2.putText(drawing, team_string, (500, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
-                #cv2.putText(drawing, "PLAYER " + str(p_ind) + "'s turn", (round(wd / 3), round(4 * hb / 3)), cv2.FONT_HERSHEY_COMPLEX, scorecard_fs, (0, 0, 0), 3)
-            cv2.putText(drawing, ">", (300 + (p_ind - 1) * p_dist, 140), cv2.FONT_HERSHEY_COMPLEX, 2, (50, 50, 255), 15)
-            cv2.putText(drawing, "ROUND " + str(cur_rnd) + "/" + str(rounds), (925, 25), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
-            cv2.putText(drawing, "SHOTS TAKEN  " + str(p_shots) + "/" + str(shotspround), ((925, 55)), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
-            for team in range(team_no):
-                if team_bool:
-                    t_scores[team] = sum(t_pts[team])
-                    first_mem = teams[team][0]
-                    last_mem = teams[team][-1]
-                    len_team = len(teams[team])
-                    tsc_xpos = round(stat_indent + last_mem * p_dist - len_team * p_dist / 2 )
-                    cv2.putText(drawing, "TEAM PTS", (statxsen, hd - 30), cv2.FONT_HERSHEY_DUPLEX, 1.5, font_col, 4)
-                    cv2.putText(drawing, str(t_scores[team]), (round(tsc_xpos - p_dist / 3), hd - 30), cv2.FONT_HERSHEY_DUPLEX, 2, font_col, 2)
-                    teamboxsensx = round(p_dist / 4)
-                    teamboxsensy = 30
-                    w = round(len_team * p_dist - teamboxsensx)
-                    h = round(hd - sc_end - teamboxsensy)
-                    x = round(stat_indent + ((first_mem - 1) * p_dist) + teamboxsensx / 2)
-                    y = round(sc_end + teamboxsensy / 2)
-                    cv2.rectangle(drawing, (x, y), (x + w, y + h), (0, 0, 255), 3)
-
             # if game finished we want to find winner
             if hole1_count + hole2_count + missed_count == num_players * shotspround * rounds:
                 drawing = np.zeros((round(hd + hb / 2), wd, 3), dtype=np.uint8)
@@ -835,9 +778,6 @@ def start_game(cap):
                     elif posit == 0 and shot_count_a[p_ind - 1] == shot_count_a[teams[t_ind -1][-1] - 1]:
                         break
 
-
-        cv2.imshow("Scoreboard", drawing)
-
         miss_bool = False
         miss_left = False
         miss_right = False
@@ -856,6 +796,8 @@ def start_game(cap):
         round_stats = [total_holes, shot_pcnt, sum(p_pts[0]), pps, hole1_count, hole2_count]
 
         cv2.imshow("frame for main", frame)
+        cv2.imshow("Scoreboard", drawing)
+        
         #cv2.imshow("mask2", mask2)
         #cv2.imshow("ROI", roi)
 
@@ -880,8 +822,6 @@ def start_game(cap):
             #     with open(csv_name + '.csv', 'w') as file:
             #         writer = csv.writer(file)
             #         writer.writerows(csv_rowlist)
-            #print(shot_pcnt_a)
-            #print(sum_p_pts)
             for i in range(num_players):
                 print("\nPlayer " + str(i + 1) + "\nTotal Shots: " + str(sum(shot_count_a[i])))
                 print("Total Holes: " + str(sum(H_count_a[i])) + " (" + str(shot_pcnt_a[i][-1])  + " %)")
@@ -958,23 +898,11 @@ def start_game(cap):
             node5 = (n5x, n5y)
             node6 = (n6x, n6y)
 
-            roi1 = (n3x, n1y)
-            roi2 = (n4x, n1y)
-            roi3 = (n3x, n3y)
-            roi4 = (n4x, n3y)
-
-            # defining nodes for shot zones
-            sz1n1 = node1
-            sz1n2 = node2
-            sz2n1 = node5
-            sz2n2 = node6
+            # defining shot zones
             sz3n1y = n5y + szy_inter
             sz3n1 = (n5x, sz3n1y)
             sz3n2 = (n6x, sz3n1y)
-
-            # define ellipses parameters for holes
-            centreH1 = (H1_cx, H1_cy)
-            centreH2 = (H2_cx, H2_cy)
+            sz3n2 = (n6x, sz3n1y)
 
         count += 1
 
@@ -982,5 +910,3 @@ def start_game(cap):
     cv2.destroyAllWindows()
 
 start_game(cap)
-
-
