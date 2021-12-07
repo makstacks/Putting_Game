@@ -3,8 +3,7 @@ from mat_detect import *
 import time
 
 
-cap = cv2.VideoCapture("C:\\Users\\Salmonservices\\putting_game\\bigholetest.mp4")
-#cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)
 time.sleep(2)
 
 # functions to determine if two lines intersect
@@ -35,6 +34,8 @@ def start_game(cap):
     game_mode = "P"
     num_players = 6
     team_no = 3
+    # default game string/name
+    game_string = "HOLY MOLY"
     if game_mode != "F" and game_mode != "f" and game_mode != "P" and game_mode != "p":
         start_game(cap)
     if game_mode == "f" or game_mode == "F":
@@ -56,7 +57,6 @@ def start_game(cap):
     shotspround = 3
 
     players = [] * num_players
-    game_string = "HOLY MOLY"
     # define points amount for points game
     s_pts = 1.5
     b_pts = 1
@@ -360,6 +360,8 @@ def start_game(cap):
 # define scoreboard window
         drawing = np.zeros((hd, wd, 3), dtype=np.uint8)
         drawing.fill(255)
+        teamboxsensx = round(p_dist / 4)
+        teamboxsensy = 30
 # adding lines, scores, names etc. to scoreboard
         cv2.putText(drawing, str(game_string), (20, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
         l1sc = cv2.line(drawing, (0, nameyst), (wd, nameyst), ls_col, ls_thick)
@@ -384,7 +386,7 @@ def start_game(cap):
                 #print(teams[team])
                 if player in teams[team] and num_players > 1:
                     p_fs = 2
-                    p_xpos = round(280 + p_dist / 2 + (player - 1) * p_dist)
+                    p_xpos = round(stat_indent + p_dist / 2 + (player - 1) * p_dist - 10)
                     if not team_bool:
                         cv2.putText(drawing, str("P" + str(player)), (p_xpos, 140), cv2.FONT_HERSHEY_COMPLEX,
                                     p_fs, (0, 0, 0), 3)
@@ -422,13 +424,13 @@ def start_game(cap):
                 cv2.putText(drawing, "x" + str(sum(H1_count_a[i])), (round(score_xpos + p_dist / 3.5), staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
                 cv2.putText(drawing, "x" + str(sum(H2_count_a[i])), (round(score_xpos + p_dist / 3.5) + xholsens + 20, staty[1] + yholsens), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 3)
             if sum(streak_count_a[i]) > 1:
-                cv2.putText(drawing, "x" + str(sum(streak_count_a[i])), (round(score_xpos - p_dist / 6), nameyst + 40), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.25, (50, 100, 255), 5)
+                cv2.putText(drawing, "x" + str(sum(streak_count_a[i])), (round(score_xpos - p_dist / 5), nameyst + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.25, (50, 100, 255), 5)
 
         if game_mode == "P":
             if num_players > 1:
                 cv2.putText(drawing, team_string, (500, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
                 #cv2.putText(drawing, "PLAYER " + str(p_ind) + "'s turn", (round(wd / 3), round(4 * hb / 3)), cv2.FONT_HERSHEY_COMPLEX, scorecard_fs, (0, 0, 0), 3)
-            cv2.putText(drawing, ">", (300 + (p_ind - 1) * p_dist, 140), cv2.FONT_HERSHEY_COMPLEX, 2, (50, 50, 255), 15)
+            cv2.putText(drawing, ">", (300 + (p_ind - 1) * p_dist, 140), cv2.FONT_HERSHEY_COMPLEX, 1.5, (50, 50, 255), 12)
             cv2.putText(drawing, "ROUND " + str(cur_rnd) + "/" + str(rounds), (925, 25), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
             cv2.putText(drawing, "SHOTS TAKEN  " + str(p_shots) + "/" + str(shotspround), ((925, 55)), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
             for team in range(team_no):
@@ -438,18 +440,22 @@ def start_game(cap):
                     last_mem = teams[team][-1]
                     len_team = len(teams[team])
                     tsc_xpos = round(stat_indent + last_mem * p_dist - len_team * p_dist / 2 )
-                    cv2.putText(drawing, "TEAM PTS", (statxsen, hd - 30), cv2.FONT_HERSHEY_DUPLEX, 1.5, font_col, 4)
+                    cv2.putText(drawing, "TEAM PTS", (statxsen - 5, hd - 30), cv2.FONT_HERSHEY_COMPLEX, 1.5, font_col, 4)
                     cv2.putText(drawing, str(t_scores[team]), (round(tsc_xpos - p_dist / 3), hd - 30), cv2.FONT_HERSHEY_DUPLEX, 2, font_col, 2)
-                    teamboxsensx = round(p_dist / 4)
-                    teamboxsensy = 30
                     w = round(len_team * p_dist - teamboxsensx)
                     h = round(hd - sc_end - teamboxsensy)
                     x = round(stat_indent + ((first_mem - 1) * p_dist) + teamboxsensx / 2)
                     y = round(sc_end + teamboxsensy / 2)
                     cv2.rectangle(drawing, (x, y), (x + w, y + h), (0, 0, 255), 3)
+            for player in range(num_players):
+                w = round(p_dist - teamboxsensx)
+                h = round(scrygap1 - teamboxsensy)
+                x = round(stat_indent + player * p_dist + teamboxsensx / 2)
+                y = round(nameyen + teamboxsensy / 2)
+                cv2.rectangle(drawing, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
 
-        # 1. Object Detection
+        # Object Detection
 
         mask = object_detector.apply(frame)
         kernel = np.ones((8, 8), np.uint8)
