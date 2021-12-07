@@ -29,15 +29,14 @@ def is_in_hole(x, y, h, k, rx, ry):
 
 def start_game(cap):
     # get user inputs for number of players/teams/game modes
-    #game_mode = input("Select game mode\n [F] Free Play\n [P] Points Game\n> ")
+    game_mode = input("Select game mode\n [F] Free Play\n [P] Points Game\n [T] Timed Challenge\n>  ")
     #game_mode = "F"
-    game_mode = "P"
-    num_players = 6
-    team_no = 3
+    # game_mode = "T"
+    # num_players = 2
+    # team_no = 2
     # default game string/name
     game_string = "HOLY MOLY"
-    if game_mode != "F" and game_mode != "f" and game_mode != "P" and game_mode != "p":
-        start_game(cap)
+
     if game_mode == "f" or game_mode == "F":
         game_mode = "F"
         game_string = "FREE PLAY"
@@ -46,15 +45,22 @@ def start_game(cap):
     if game_mode == "p" or game_mode == "P":
         game_mode = "P"
         game_string = "POINTS GAME"
-    # if game_mode != "F":
-    #     num_players = int(input("Enter number of players\n> "))
-    #     if num_players < 3:
-    #         team_no = num_players
-    #     else:
-    #         team_no = int(input("Enter number of Teams\n> "))
+    if game_mode == "t" or game_mode == "T":
+        game_mode = "T"
+        game_string = "TIMER"
+    if game_mode != "F" and game_mode != "P" and game_mode != "T":
+        start_game(cap)
+    if game_mode != "F":
+        num_players = int(input("Enter number of players\n> "))
+        if num_players < 3:
+            team_no = num_players
+        else:
+            team_no = int(input("Enter number of Teams\n> "))
 
     rounds = 3
     shotspround = 3
+
+    t_count = 30
 
     players = [] * num_players
     # define points amount for points game
@@ -169,8 +175,11 @@ def start_game(cap):
     max_streak_count = 0
     H1streak_count = 0
     H2streak_count = 0
+    time_count = 0
+    init_time = 0
+    timers_done = 0
 
-    # array to store how many rounds a player has completed
+# array to store how many rounds a player has completed
     p_rnd_comp = [0] * num_players
 
     cyo = [[] for i in range(1000)]
@@ -204,6 +213,8 @@ def start_game(cap):
     small_hole_bool = False
     big_hole_bool = False
     hole_bool = False
+    t_started = False
+    t_ended = False
     streak_broke1 = False
     streak_broke2 = False
     streak_broke3 = False
@@ -378,6 +389,9 @@ def start_game(cap):
         stat4 = cv2.putText(drawing, "POINTS/SHOT", (statxsen, staty[3]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
         stat5 = cv2.putText(drawing, "MAX. STREAK", (statxsen, staty[4]), cv2.FONT_HERSHEY_COMPLEX, stat_fs, (0, 0, 0), stat_th)
 
+        if game_mode == "T" and not t_started:
+            cv2.putText(drawing, str(t_count), (20, 120), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0), 3)
+
         for p in range(num_players):
             lsp = cv2.line(drawing, (280 + p_dist * p, nameyst + 20), (280 + p_dist * p, sc_end), ls_col, pls_thick)
 
@@ -410,7 +424,7 @@ def start_game(cap):
 
         for i in range(num_players):
             score_xpos = round(stat_indent + p_dist / 3.5 + i * p_dist)
-            cv2.putText(drawing, str(sum(p_pts[i])), (score_xpos, staty[0]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
+            cv2.putText(drawing, str(sum(p_pts[i])), (score_xpos, staty[0] + 5), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
             cv2.putText(drawing, str(sum(H_count_a[i])), (score_xpos - 20, staty[1]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
             cv2.putText(drawing, "/" + str(sum(shot_count_a[i])), (score_xpos + 40, staty[1] + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.5, font_col, 2)
             cv2.putText(drawing, str(shot_pcnt_a[i][-1]), (score_xpos, staty[2]), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs, font_col, 3)
@@ -426,13 +440,14 @@ def start_game(cap):
             if sum(streak_count_a[i]) > 1:
                 cv2.putText(drawing, "x" + str(sum(streak_count_a[i])), (round(score_xpos - p_dist / 5), nameyst + 30), cv2.FONT_HERSHEY_DUPLEX, scorecard_fs - 0.25, (50, 100, 255), 5)
 
-        if game_mode == "P":
+        if game_mode != "F":
             if num_players > 1:
                 cv2.putText(drawing, team_string, (500, 40), cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 3)
                 #cv2.putText(drawing, "PLAYER " + str(p_ind) + "'s turn", (round(wd / 3), round(4 * hb / 3)), cv2.FONT_HERSHEY_COMPLEX, scorecard_fs, (0, 0, 0), 3)
             cv2.putText(drawing, ">", (300 + (p_ind - 1) * p_dist, 140), cv2.FONT_HERSHEY_COMPLEX, 1.5, (50, 50, 255), 12)
-            cv2.putText(drawing, "ROUND " + str(cur_rnd) + "/" + str(rounds), (925, 25), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
-            cv2.putText(drawing, "SHOTS TAKEN  " + str(p_shots) + "/" + str(shotspround), ((925, 55)), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
+            if game_mode == "P":
+                cv2.putText(drawing, "ROUND " + str(cur_rnd) + "/" + str(rounds), (925, 25), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
+                cv2.putText(drawing, "SHOTS TAKEN  " + str(p_shots) + "/" + str(shotspround), ((925, 55)), cv2.FONT_HERSHEY_COMPLEX, 1, font_col, 3)
             for team in range(team_no):
                 if team_bool:
                     t_scores[team] = sum(t_pts[team])
@@ -638,10 +653,7 @@ def start_game(cap):
                     object_missed.append(key)
                     shot_record.append(0)
                     miss_bool = True
-                    # print("missed, dist to H1:")
-                    # print(object_shot[-1], str(((cxls - H1_cx)**2)**0.5), str(((cyls - H1_cy)**2)**0.5), r2, h2)
-                    # print("dist to H2:")
-                    # print(object_shot[-1], str(((cxls - H2_cx)**2)**0.5), str(((cyls - H2_cy)**2)**0.5), r2, h2)
+    # End of object/shot tracking
 
         if miss_bool or hole_bool:
             shot_bool = False
@@ -690,9 +702,68 @@ def start_game(cap):
                 if max_str_temp > max_streak_a[player][0]:
                     max_streak_a[player][0] = max_str_temp
 
+        # if we are doing timed game mode, we start timer when first shot is taken
+        if game_mode == "T" and shot_bool and not t_started:
+            init_time = time.time()
+            t_started = True
+        if t_started:
+            time_count = round(t_count - (round(time.time(), 1) - init_time), 1)
+            cv2.putText(drawing, str(time_count), (20, 120), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 0, 0), 3)
+
+        # loop to find indicator for next player/team turn
+        if (game_mode == "P" and (miss_bool or hole_bool) and p_shots == shotspround) or\
+                (game_mode == "T" and t_started and time_count == 0):
+            #print(p_shots, shotspround)
+            if game_mode == "T":
+                timers_done += 1
+                t_started = False
+                t_ended = True
+
+                drawing = np.zeros((hd, wd, 3), dtype=np.uint8)
+                drawing.fill(255)
+
+                cv2.putText(drawing, "ENTER to proceed", (20, round(hd / 2)), cv2.FONT_HERSHEY_COMPLEX, 4, (0, 0, 0), 5)
+                cv2.putText(drawing, "P" + str(p_ind) + ": " + str(sum(sum_p_pts[p_ind - 1])), (20, round(hd/ 2 - 150)), cv2.FONT_HERSHEY_COMPLEX, 4, font_col, 5)
+                cv2.imshow("Scoreboard", drawing)
+                cv2.waitKey(0)
+                # start_t = time.time()
+                # t_secs_tot = 20
+                # print("should be showing now")
+                # while True:
+                #     t_secs = round(t_secs_tot - (time.time() - start_t), 1)
+                #     cv2.imshow("Scoreboard", drawing)
+                #
+                #     if t_secs < 0:
+                #         break
+                #     #print(t_secs)
+
+            p_rnd_comp[p_ind - 1] = int(p_rnd_comp[p_ind - 1]) + 1
+            # t_ind += 1
+            # if t_ind > team_no:
+            #     t_ind = 1
+            p_shots = 0
+            if (missed_count + hole1_count + hole2_count) % (num_players * shotspround) == 0:
+                cur_rnd = int(shot_count / (num_players * shotspround)) + 1
+            t_ind += 1
+            if t_ind > team_no:
+                t_ind = 1
+            while True:
+                p_ind += 1
+                if p_ind > num_players:
+                    p_ind = 1
+                if p_ind not in teams[t_ind - 1]:
+                    continue
+                else:
+                    posit = teams[t_ind - 1].index(p_ind)
+                if posit > 0 and shot_count_a[p_ind - 1] < shot_count_a[p_ind - 2]:
+                    break
+                elif posit == 0 and shot_count_a[p_ind - 1] == shot_count_a[teams[t_ind -1][-1] - 1]:
+                    break
+
             # if game finished we want to find winner
-            if hole1_count + hole2_count + missed_count == num_players * shotspround * rounds:
-                drawing = np.zeros((round(hd + hb / 2), wd, 3), dtype=np.uint8)
+            if (game_mode == "P" and total_holes + missed_count == num_players * shotspround * rounds) \
+                    or (game_mode == "T" and timers_done == num_players):
+                drawing = np.zeros((hd, wd, 3), dtype=np.uint8)
                 drawing.fill(255)
                 f_size_win = 2.5
                 if not team_bool:
@@ -721,7 +792,7 @@ def start_game(cap):
                         elif sum(p_pts[i]) > winning_pts:
                             winning_pts = 0
                             winning_p = 0
-                    drawing = np.zeros((round(hd + hb /2), wd, 3), dtype=np.uint8)
+                    drawing = np.zeros((hd, wd, 3), dtype=np.uint8)
                     drawing.fill(255)
                     if winning_p > 0:
                         cv2.putText(drawing, "Team " + str(winning_p) + " wins", (round(wd / 6), round(hd / 2)), cv2.FONT_HERSHEY_COMPLEX, f_size_win, font_col, 5)
@@ -749,34 +820,6 @@ def start_game(cap):
                     #cap.release()
                     cv2.destroyAllWindows()
                 start_game(cap)
-
-
-        # loop to determine next player if all shots for round have been taken and find indicator for player/team turn
-        if miss_bool or hole_bool:
-            if p_shots == shotspround:
-                #print(p_shots, shotspround)
-                p_rnd_comp[p_ind - 1] = int(p_rnd_comp[p_ind - 1]) + 1
-                # t_ind += 1
-                # if t_ind > team_no:
-                #     t_ind = 1
-                p_shots = 0
-                if (missed_count + hole1_count + hole2_count) % (num_players * shotspround) == 0:
-                    cur_rnd = int(shot_count / (num_players * shotspround)) + 1
-                t_ind += 1
-                if t_ind > team_no:
-                    t_ind = 1
-                while True:
-                    p_ind += 1
-                    if p_ind > num_players:
-                        p_ind = 1
-                    if p_ind not in teams[t_ind - 1]:
-                        continue
-                    else:
-                        posit = teams[t_ind - 1].index(p_ind)
-                    if posit > 0 and shot_count_a[p_ind - 1] < shot_count_a[p_ind - 2]:
-                        break
-                    elif posit == 0 and shot_count_a[p_ind - 1] == shot_count_a[teams[t_ind -1][-1] - 1]:
-                        break
 
         miss_bool = False
         miss_left = False
@@ -910,3 +953,4 @@ def start_game(cap):
     cv2.destroyAllWindows()
 
 start_game(cap)
+
