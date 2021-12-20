@@ -2,13 +2,12 @@ import pygame
 import time
 import cv2
 import os
-import math
-import sys
+import pickle
 from playsound import playsound
 from settings import *
 from mat_detect import *
 from tracker import *
-import pickle
+
 
 BACKGROUND = pygame.image.load(os.path.join("assets", "8bitbeachgolf.png"))
 mainClock = pygame.time.Clock()
