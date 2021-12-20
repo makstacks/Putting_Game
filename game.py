@@ -1,12 +1,14 @@
 import pygame
-from menu import *
-from settings import *
-from putting_game import *
-from mat_detect import *
+import time
 import cv2
 import os
+import math
+import sys
+from playsound import playsound
+from settings import *
+from mat_detect import *
+from tracker import *
 import pickle
-from background import *
 
 BACKGROUND = pygame.image.load(os.path.join("assets", "8bitbeachgolf.png"))
 mainClock = pygame.time.Clock()
@@ -24,8 +26,6 @@ class Menu():
         self.run_display = True
         self.cursor_rect = pygame.Rect(0, 0, 20, 20)
         self.offset = - 180
-        #self.background = BACKGROUND
-        #self.game_mode = "Points Game"
 
     def draw_cursor(self):
         self.game.draw_text('*', 60, self.cursor_rect.x, self.cursor_rect.y)
@@ -1381,24 +1381,23 @@ class Game():
         text_rect.center = (x,y)
         self.display.blit(text_surface,text_rect)
 
-    # Functions to determine if two lines intersect
-    def ccw(A, B, C):
-        return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
+# Functions to determine if two lines intersect
+def ccw(A, B, C):
+    return (C[1] - A[1]) * (B[0] - A[0]) > (B[1] - A[1]) * (C[0] - A[0])
 
-    # Return true if line segments AB and CD intersect
-    def intersect(A, B, C, D):
-        return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
+# Return true if line segments AB and CD intersect
+def intersect(A, B, C, D):
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 
+def is_empty(any_structure):
+    if any_structure:
+        return False
+    else:
+        return True
 
-    def is_empty(any_structure):
-        if any_structure:
-            return False
-        else:
-            return True
-
-    # function to check if point is within ellipse (hole)
-    def is_in_hole(x, y, hx, hy, rx, ry):
-        if ((x - hx) ** 2) / rx ** 2 + ((y - hy) ** 2) / ry ** 2 <= 1:
-            return True
-        else:
-            return False
+# function to check if point is within ellipse (hole)
+def is_in_hole(x, y, hx, hy, rx, ry):
+    if ((x - hx) ** 2) / rx ** 2 + ((y - hy) ** 2) / ry ** 2 <= 1:
+        return True
+    else:
+        return False
