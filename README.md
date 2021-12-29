@@ -1,4 +1,5 @@
 # Putting_Game
+This game is still under development, with features needing to be added/refined.
 Object tracking and object detection is applied to track golf puts in real time and display stats/games. Works best with the Perfect Practice putting mat
 but settings can be adjusted to suit any mat.  
 
