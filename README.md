@@ -9,3 +9,5 @@ If the object is moving towards the hole along the mat we register this object a
 a big hole or small hole, if neither of these are true we register it as a miss.
 
 The basic code and method was identified thanks to Pysource: https://www.youtube.com/watch?v=O3b8lVF93jU&ab_channel=Pysource
+
+Note: Sound files have not been added into this repository so references to sounds/music within code will need to be commented out.
