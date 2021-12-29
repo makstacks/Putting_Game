@@ -3,7 +3,7 @@ import time
 import cv2
 import os
 import pickle
-from playsound import playsound
+import numpy as np
 from settings import *
 from mat_detect import *
 from tracker import *
@@ -99,6 +99,7 @@ class MainMenu(Menu):
                     for i in self.inputs:
                         f.write(str(i) +"\n")
                 self.game.playing = True
+                self.run_display = False
             elif self.state == 'Options':
                 self.game.curr_menu = self.game.options
             elif self.state == 'Credits':
@@ -388,8 +389,6 @@ class GameSelect(Menu):
         return self.inputs
 
 
-
-
 class OptionsMenu(Menu):
     def __init__(self, game):
         Menu.__init__(self, game)
@@ -465,10 +464,16 @@ class Game():
         self.credits = CreditsMenu(self)
         self.curr_menu = self.main_menu
         self.sounds = {}
-        self.sounds["hole"] = pygame.mixer.Sound("assets\\reward.mp3")
-        self.sounds["hole"].set_volume(SOUNDS_VOLUME)
+        self.sounds["hole1"] = pygame.mixer.Sound("assets\\reward1.mp3")
+        self.sounds["hole1"].set_volume(SOUNDS_VOLUME)
+        self.sounds["hole2"] = pygame.mixer.Sound("assets\\reward2.mp3")
+        self.sounds["hole2"].set_volume(SOUNDS_VOLUME)
+        self.sounds["miss"] = pygame.mixer.Sound("assets\\miss.mp3")
+        self.sounds["miss"].set_volume(SOUNDS_VOLUME)
         self.sounds["dontmiss"] = pygame.mixer.Sound("assets\\dontmiss.mp3")
         self.sounds["dontmiss"].set_volume(SOUNDS_VOLUME)
+        self.sounds["sadsong"] = pygame.mixer.Sound("assets\\sad_music.mp3")
+        self.sounds["sadsong"].set_volume(SOUNDS_VOLUME)
         self.matvals = []
 
     def game_loop(self):
@@ -513,6 +518,7 @@ class Game():
             self.reset_keys()
 
             p_strings = ["P1", "P2", "P3", "P4", "P5", "P6"]
+            t_strings = ["Team 1", "Team 2", "Team 3", "Team 4", "Team 5", "Team 6"]
             cv2.destroyAllWindows()
             t_count = 30
             players = [] * num_players
@@ -635,6 +641,7 @@ class Game():
             sum_p_pts = [0 for i in range(num_players)]
             pps_a = [[0] for i in range(num_players)]
             streak_count_a = [[] for i in range(num_players)]
+            missed_strk_cnt_a = [[] for i in range(num_players)]
             max_streak_a = [[0] for i in range(num_players)]
             H_count_a = [[] for i in range(num_players)]
             H1_count_a = [[] for i in range(num_players)]
@@ -730,7 +737,7 @@ class Game():
 
             # drawing
             STATS_SHOWN = 7
-            TITLE_Y_DIST = 150
+            TITLE_Y_DIST = 100
             UNDER_Y_DIST = 250
             STAT_HEAD_Y_DIST = 50
             STAT_HEAD_Y_START = round(TITLE_Y_DIST + STAT_HEAD_Y_DIST / 2)
@@ -803,11 +810,14 @@ class Game():
                     # Draw rect representing team by colour
                     pygame.draw.rect(self.display, p_colour[p], pygame.Rect(round(SCORECARD_X_INDENT),
                         round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT))
+                    pygame.draw.rect(self.display, p_colour[p], pygame.Rect(round(SCORECARD_X_INDENT),
+                        round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT), 3)
                     for s in range(STATS_SHOWN):
                         # Draw scores/stats for each player
                         self.draw_scores(str(stats_a[p][s]), 50, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
                         if s < len(stats_strings):
                             self.draw_scores(str(stats_strings[s]), 50, round(P_X_START + ST_DIST * s), STAT_HEAD_Y_START)
+
                 # Draw box to indicate player turn
                 pygame.draw.rect(self.display, self.WHITE, pygame.Rect(round(SCORECARD_X_INDENT),
                 round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 5)
@@ -830,24 +840,39 @@ class Game():
                 # Draw balls and player indicator on mat
                 p_txt = 50
                 self.draw_text(p_strings[p_ind - 1], p_txt, round(MATDR_SX + L_MATDR / 2), round(MATDR_SY + p_txt / 2))
-                if team_bool:
+                if game_mode != "F":
+                    for ball in range(shotspround):
+                        ball_rad = round(HR1 / 2)
+                        ball_xpos = round(MATDR_SX + 7 * L_MATDR / 8)
+                        ball_ypos = MATDR_SY + (ball + 1) * (W_MATDR / (shotspround + 1))
+                        if ball + 1 > shotsinrnd:
+                            # if shots have been taken we want to display outline of these balls
+                            pygame.draw.circle(self.display, self.WHITE, (ball_xpos, ball_ypos), ball_rad)
+                        else:
+                            # draw filled in ball/circle for shots yet to be taken
+                            pygame.draw.circle(self.display, self.WHITE, (ball_xpos, ball_ypos), ball_rad, 4)
+                        if ball == shotsinrnd:
+                            fsind = 40
+                            self.draw_ind("<", fsind, ball_xpos + ball_rad + fsind / 2, ball_ypos)
+                            pygame.draw.circle(self.display, self.BLACK, (ball_xpos, ball_ypos), ball_rad + 2, 4)
+                    # Draw on total scores in bottom right
+                    tot_scores_x = round(MATDR_EX + 150)
+                    tot_scores_y = MATDR_SY
+                    scoresbigfs = 30
+                    #self.draw_text_with_rect("SCORES", scoresbigfs, tot_scores_x, tot_scores_y, self.GREEN)
                     for t in range(team_no):
-                        self.draw_text_fontcol(str(sum(t_pts[t])), 40, T_SCORESX_ST + T_SCORES_DIST * t, MATDR_SY + 50,
-                                                 self.team_colours[t])
-                for ball in range(shotspround):
-                    ball_rad = round(HR1 / 2)
-                    ball_xpos = round(MATDR_SX + 7 * L_MATDR / 8)
-                    ball_ypos = MATDR_SY + (ball + 1) * (W_MATDR / (shotspround + 1))
-                    if ball + 1 > shotsinrnd:
-                        # if shots have been taken we want to display outline of these balls
-                        pygame.draw.circle(self.display, self.WHITE, (ball_xpos, ball_ypos), ball_rad)
-                    else:
-                        # draw filled in ball/circle for shots yet to be taken
-                        pygame.draw.circle(self.display, self.WHITE, (ball_xpos, ball_ypos), ball_rad, 4)
-                    if ball == shotsinrnd:
-                        fsind = 40
-                        self.draw_ind("<", fsind, ball_xpos + ball_rad + fsind / 2, ball_ypos)
-                        pygame.draw.circle(self.display, self.BLACK, (ball_xpos, ball_ypos), ball_rad + 2, 4)
+                        sc_fs = 30
+                        stringscx = MATDR_EX + 250
+                        stringscy = tot_scores_y + t * 35
+                        scorescx = MATDR_EX + 450
+                        scorescy = stringscy
+                        if team_bool:
+                            scorescx = MATDR_EX + 500
+                            self.draw_text(str(t_strings[t]), sc_fs, stringscx, stringscy)
+                            self.draw_text(str(sum(t_pts[t])), sc_fs, scorescx, scorescy)
+                        else:
+                            self.draw_text(str(p_strings[t]), sc_fs, stringscx, stringscy)
+                            self.draw_text(str(sum(p_pts[t])), sc_fs, scorescx, scorescy)
 
                 self.window.blit(self.display, (0, 0))
                 pygame.display.update()
@@ -855,9 +880,6 @@ class Game():
                 ret, frame = self.cap.read()
 
                 height, width, _ = frame.shape
-
-                # Extract Region of interest
-                roi = frame[miny: maxy, minx: maxx]
 
                 # fill shapes to only reveal mat
                 polyfill1 = np.array([[0, 0], [minxmin, 0], [minx, n3ay], [0, n3ay]])
@@ -880,7 +902,6 @@ class Game():
                 _, mask = cv2.threshold(mask, 254.9, 255, cv2.THRESH_BINARY)
                 contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-                # detect_hole(roi)
                 no_detection = False
                 detections = []
                 contr = 0
@@ -888,11 +909,7 @@ class Game():
                     # Calculate area and remove small elements
                     area = cv2.contourArea(cnt)
                     if area > 40:
-                        # cv2.drawContours(roi, [cnt], -1, (0, 255, 0), 2)
                         x, y, w, h = cv2.boundingRect(cnt)
-                        # left_ind = y - (m1 * x) - c1
-                        # right_ind = y - (m2 * x) - c2
-                        # if left_ind > 0 and right_ind < 0 and y < maxy:
                         detections.append([x, y, w, h])
                     contr += 1
 
@@ -922,12 +939,10 @@ class Game():
                         oldy = cyo[key][-2]
                         oldery = cyo[key][-3]
                         oldyint = int(oldy)
-                        olderyint = int(oldery)
 
                         oldx = cxo[key][-2]
                         olderx = cxo[key][-3]
                         oldxint = int(oldx)
-                        olderxint = int(olderx)
 
                         # check intersections of ball path with lines at end of holes (to check misses)
                         miss_end = intersect((cx, cy), (xinit, yinit), node3, node4)
@@ -1041,6 +1056,8 @@ class Game():
                             object_missed.append(key)
                             shot_record.append(0)
                             miss_bool = True
+                            if cyls > H2_yd:
+                                miss_end = True
                             print("missed")
 
                 if miss_bool or hole_bool:
@@ -1048,27 +1065,28 @@ class Game():
                     misspx = int(cxo[last_shot_key][-1])
                     misspy = int(cyo[last_shot_key][-1])
 
-                if small_hole_bool:
-                    H1_rndcount_a[p_ind - 1] += 1
-                elif big_hole_bool:
-                    H2_rndcount_a[p_ind - 1] += 1
-                elif miss_bool:
-                    missed_rndcount_a[p_ind - 1] += 1
-                    if rb_miss:
-                        misspy = int(cymax[last_shot_key])
-                        misspx = int(cxmax[last_shot_key])
-                    dy_act = H2_yu - misspy
-                    dx_act = H1_xr - misspx
-                    dy_mat = dx_act * mat_ratio
-                    dx_mat = dy_act * mat_ratio
-                    draw_missx = H2DRXU + dx_mat
-                    draw_missy = H1DRYR - dy_mat
-                    # if draw_missx > H2DRXU:
-                    #     draw_missx = draw_missx + 0.5 * (draw_missx - H2DRXU)
-                    if miss_end and not rb_miss:
-                        draw_missx = MATDR_SX
-                    missed_points.append((draw_missx, draw_missy))
-                    print("drawing x")
+                    if small_hole_bool:
+                        H1_rndcount_a[p_ind - 1] += 1
+                    elif big_hole_bool:
+                        H2_rndcount_a[p_ind - 1] += 1
+                    elif miss_bool:
+                        missed_rndcount_a[p_ind - 1] += 1
+                        if rb_miss:
+                            misspy = int(cymax[last_shot_key])
+                            misspx = int(cxmax[last_shot_key])
+                        dy_act = H2_yu - misspy
+                        dx_act = H1_xr - misspx
+                        dy_mat = dx_act * mat_ratio
+                        dx_mat = dy_act * mat_ratio
+                        draw_missx = H2DRXU + dx_mat
+                        draw_missy = H1DRYR - dy_mat
+                        # if draw_missx > H2DRXU:
+                        #     draw_missx = draw_missx + 0.5 * (draw_missx - H2DRXU)
+                        if miss_end and not rb_miss:
+                            print("ENDMISS")
+                            draw_missx = MATDR_SX
+                        missed_points.append((draw_missx, draw_missy))
+                        print("drawing x")
 
 ################################# End of shot tracking #################################
 
@@ -1088,6 +1106,7 @@ class Game():
                         if hole_bool:
                             streak_count_a[player].append(1)
                             H_count_a[player].append(1)
+                            missed_strk_cnt_a[player].clear()
                         if small_hole_bool:
                             H1_count_a[player].append(1)
                             p_pts[p_ind - 1].append(s_pts)
@@ -1102,6 +1121,7 @@ class Game():
                                     t_pts[team].append(b_pts)
                         elif miss_bool:
                             missed_count_a[player].append(1)
+                            missed_strk_cnt_a[player].append(1)
                             streak_count_a[player].clear()
                             p_pts[player].append(0)
                             for team in range(team_no):
@@ -1139,8 +1159,17 @@ class Game():
                 if hole_bool:
                     if sum(streak_count_a[p_ind - 1]) == 5:
                         self.sounds["dontmiss"].play()
+                    elif small_hole_bool:
+                        self.sounds["hole1"].play()
+                    elif big_hole_bool:
+                        self.sounds["hole2"].play()
+                elif miss_bool:
+                    if sum(missed_strk_cnt_a[p_ind - 1]) == 1:
+                        self.sounds["sadsong"].play()
                     else:
-                        self.sounds["hole"].play()
+                        self.sounds["miss"].play()
+
+
 ################################# End of stats calculation #################################
 
                 # loop to find indicator for next player/team turn
@@ -1159,9 +1188,6 @@ class Game():
                         t_ended = True
 
                     p_rnd_comp[p_ind - 1] = int(p_rnd_comp[p_ind - 1]) + 1
-                    # t_ind += 1
-                    # if t_ind > team_no:
-                    #     t_ind = 1
                     p_shots = 0
                     t_ind += 1
 
@@ -1230,10 +1256,7 @@ class Game():
                 round_stats = [total_holes, shot_pcnt, sum(p_pts[0]), pps, hole1_count, hole2_count]
 
                 cv2.imshow("frame for main", frame)
-                #cv2.imshow("Scoreboard", drawing)
                 pygame.display.update()
-                # cv2.imshow("mask2", mask2)
-                # cv2.imshow("ROI", roi)
 
                 key = cv2.waitKey(30)
 
