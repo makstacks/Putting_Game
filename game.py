@@ -474,9 +474,9 @@ class Game():
         self.matvals = []
 
     def game_loop(self):
-        #self.cap = cv2.VideoCapture("C:\\Users\\Salmonservices\\putting_game\\assets\\perfectpractice.mp4")
 
         gm_inputs = []
+        # Reading in inputs for the game
         with open("game_inputs.txt", "r") as f:
             for line in f:
                 gm_inputs.append(int(line.strip()))
@@ -498,7 +498,6 @@ class Game():
             self.cap = cv2.VideoCapture(0)
             # Wait for camera to warm up
             time.sleep(2)
-                
             self.check_events()
             if self.BACK_KEY:
                 self.playing = False
@@ -853,20 +852,19 @@ class Game():
                     tot_scores_x = round(MATDR_EX + 150)
                     tot_scores_y = MATDR_SY
                     scoresbigfs = 30
-                    #self.draw_text_with_rect("SCORES", scoresbigfs, tot_scores_x, tot_scores_y, self.GREEN)
                     for t in range(team_no):
                         sc_fs = 30
                         stringscx = MATDR_EX + 250
-                        stringscy = tot_scores_y + t * 35
+                        stringscy = tot_scores_y + 50 + t * 50
                         scorescx = MATDR_EX + 450
                         scorescy = stringscy
                         if team_bool:
                             scorescx = MATDR_EX + 500
                             self.draw_text(str(t_strings[t]), sc_fs, stringscx, stringscy)
-                            self.draw_text(str(sum(t_pts[t])), sc_fs, scorescx, scorescy)
+                            self.draw_scores(str(sum(t_pts[t])), sc_fs * 2, scorescx, scorescy)
                         else:
                             self.draw_text(str(p_strings[t]), sc_fs, stringscx, stringscy)
-                            self.draw_text(str(sum(p_pts[t])), sc_fs, scorescx, scorescy)
+                            self.draw_scores(str(sum(p_pts[t])), sc_fs * 2, scorescx, scorescy)
 
                 self.window.blit(self.display, (0, 0))
                 pygame.display.update()
@@ -1156,9 +1154,9 @@ class Game():
                     elif big_hole_bool:
                         self.sounds["hole2"].play()
                 elif miss_bool:
-                    if sum(missed_strk_cnt_a[p_ind - 1]) == 1:
-                        self.sounds["sadsong"].play()
-                    else:
+                    # if sum(missed_strk_cnt_a[p_ind - 1]) == 1:
+                    #     self.sounds["sadsong"].play()
+                    # else:
                         self.sounds["miss"].play()
 
 ################################# End of stats calculation #################################
