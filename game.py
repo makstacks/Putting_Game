@@ -11,9 +11,6 @@ from tracker import *
 
 BACKGROUND = pygame.image.load(os.path.join("assets", "8bitbeachgolf.png"))
 mainClock = pygame.time.Clock()
-# List to hold game inputs
-#gm_inputs = ["F", 1, 1, 0, 0]
-        # game mode, nump, num teams, rounds, shots per round
 
 class Menu():
     def __init__(self, game):
@@ -499,8 +496,9 @@ class Game():
         while self.playing:
             # Load Camera
             self.cap = cv2.VideoCapture(0)
-            #self.cap = cv2.VideoCapture("C:\\Users\\Salmonservices\\putting_game\\assets\\perfectpractice.mp4")
+            # Wait for camera to warm up
             time.sleep(2)
+                
             self.check_events()
             if self.BACK_KEY:
                 self.playing = False
@@ -779,10 +777,7 @@ class Game():
             P_Y_START = round(TITLE_Y_DIST + STAT_HEAD_Y_DIST + P_Y_SPLIT / 2)
 
             stats_strings = ["", "Holes", "Shots", "%", "Points", "PPS", "Max.Strk", "Hole 1", "Hole 2"]
-            streakHSname = "streak_highscores.pkl"
-            # with open(streakHSname, "rb") as fp:   #Pickling
-            #     streak_highscores = pickle.load(fp)
-            streak_highscores = [["N", 0], ["N", 0], ["N", 0]]
+
             count = 0
 ################ Start of while loop to track shots ##################
             while self.cap.isOpened():
@@ -797,7 +792,6 @@ class Game():
                 hole_bool = False
                 # Draw scoreboard
                 self.display.fill(self.BLACK)
-                #self.display.blit(BACKGROUND, (0, 0))
                 self.draw_text(game_string, 40, self.DISPLAY_W/2, 50)
                 if game_mode != "F":
                     self.draw_text(team_string, 20, round(self.DISPLAY_W/8), 25)
@@ -937,11 +931,9 @@ class Game():
                     yinit = cyo[key][0]
                     if key in object_shot:
                         oldy = cyo[key][-2]
-                        oldery = cyo[key][-3]
                         oldyint = int(oldy)
 
                         oldx = cxo[key][-2]
-                        olderx = cxo[key][-3]
                         oldxint = int(oldx)
 
                         # check intersections of ball path with lines at end of holes (to check misses)
@@ -1168,7 +1160,6 @@ class Game():
                         self.sounds["sadsong"].play()
                     else:
                         self.sounds["miss"].play()
-
 
 ################################# End of stats calculation #################################
 
