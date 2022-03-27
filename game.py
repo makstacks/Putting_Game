@@ -496,6 +496,7 @@ class Game():
         while self.playing:
             # Load Camera
             self.cap = cv2.VideoCapture(0)
+
             # Wait for camera to warm up
             time.sleep(2)
             self.check_events()
@@ -637,7 +638,9 @@ class Game():
             p_pts = [[0] for i in range(num_players)]
             sum_p_pts = [0 for i in range(num_players)]
             pps_a = [[0] for i in range(num_players)]
-            streak_count_a = [[] for i in range(num_players)]
+            streak_count_s = [[0] for i in range(num_players)]
+            streak_count_b = [[0] for i in range(num_players)]
+            streak_count_a = [[0] for i in range(num_players)]
             missed_strk_cnt_a = [[] for i in range(num_players)]
             max_streak_a = [[0] for i in range(num_players)]
             H_count_a = [[] for i in range(num_players)]
@@ -658,7 +661,11 @@ class Game():
             shot_bool = False
             t_started = False
             t_ended = False
-
+            # read in streak highscore
+            streakHS = []
+            with open("streakHS.txt", "r") as f:
+                for line in f:
+                    streakHS.append(int(line.strip()))
             # self.matvals = [minx, maxx, miny, maxy, minxmin, maxxmin, n3ay, H1_cx, H1_cy, H1_ax_l, r1, h1, H2_cx, H2_cy, H2_ax_l, r2, h2]
             minx = self.matvals[0]
             maxx = self.matvals[1]
@@ -775,6 +782,23 @@ class Game():
             P_X_START = round(SCORECARD_X_INDENT + ST_DIST / 2)
             P_Y_START = round(TITLE_Y_DIST + STAT_HEAD_Y_DIST + P_Y_SPLIT / 2)
 
+            stx_x = 1040
+            stx_y = 510
+            stcs_y = 555
+            sths_y = 660
+            sths_x = 780
+            sths1_x = 930
+            sths2_x = sths1_x + 120
+            sths3_x = sths2_x + 125
+            holes_y = round((sths_y + stcs_y )/ 2)
+            
+            # Setting up timer
+            passed_time = 0
+            shown_time = 30
+            timer_started = False
+            done = False
+
+
             stats_strings = ["", "Holes", "Shots", "%", "Points", "PPS", "Max.Strk", "Hole 1", "Hole 2"]
 
             count = 0
@@ -796,6 +820,23 @@ class Game():
                     self.draw_text(team_string, 20, round(self.DISPLAY_W/8), 25)
                     self.draw_text("Rounds " + str(rounds), 20, self.DISPLAY_W/8, 50)
                     self.draw_text("Shots  " + str(shotspround), 20, self.DISPLAY_W/8, 75)
+                else:
+                    self.draw_scores("Current Streaks", 50, stx_x, stx_y)
+                    self.draw_scores(str(sum(streak_count_s[p_ind - 1])), 65, sths1_x, stcs_y)
+                    self.draw_scores(str(sum(streak_count_b[p_ind - 1])), 65, sths2_x, stcs_y)
+                    self.draw_scores(str(sum(streak_count_a[p_ind - 1])), 65, sths3_x, stcs_y)
+                    pygame.draw.circle(self.display, self.WHITE, (sths1_x, holes_y), 7)
+                    pygame.draw.circle(self.display, self.WHITE, (sths2_x, holes_y), 12)
+                    pygame.draw.circle(self.display, self.WHITE, (sths3_x - 15, holes_y), 7)
+                    pygame.draw.circle(self.display, self.WHITE, (sths3_x + 15, holes_y), 12)
+                    self.draw_scores("HIGHSCORES:", 45, sths_x, sths_y)
+                    self.draw_scores(str(streakHS[0]), 65, sths1_x, sths_y)
+                    self.draw_scores(str(streakHS[1]), 65, sths2_x, sths_y)
+                    self.draw_scores(str(streakHS[2]), 65, sths3_x, sths_y)
+
+
+                if game_mode == "T":
+                    self.draw_text(str(shown_time), 40, round(7 * self.DISPLAY_W/8), 600)
                 for p in range(num_players):
                     for t in range(team_no):
                         if p + 1 in teams[t]:
@@ -831,8 +872,9 @@ class Game():
                     self.draw_text("x" + str(bholesinrnd), 20, H2DRX, H2DRY)
 
                 # Draw balls and player indicator on mat
-                p_txt = 50
-                self.draw_text(p_strings[p_ind - 1], p_txt, round(MATDR_SX + L_MATDR / 2), round(MATDR_SY + p_txt / 2))
+                p_txt = 60
+                self.draw_text_with_rect(p_strings[p_ind - 1], p_txt, round(MATDR_EX + 2*p_txt),
+                                         round(MATDR_SY + p_txt), p_colour[p_ind - 1])
                 if game_mode != "F":
                     for ball in range(shotspround):
                         ball_rad = round(HR1 / 2)
@@ -852,19 +894,19 @@ class Game():
                     tot_scores_x = round(MATDR_EX + 150)
                     tot_scores_y = MATDR_SY
                     scoresbigfs = 30
-                    for t in range(team_no):
-                        sc_fs = 30
-                        stringscx = MATDR_EX + 250
-                        stringscy = tot_scores_y + 50 + t * 50
-                        scorescx = MATDR_EX + 450
-                        scorescy = stringscy
-                        if team_bool:
-                            scorescx = MATDR_EX + 500
-                            self.draw_text(str(t_strings[t]), sc_fs, stringscx, stringscy)
-                            self.draw_scores(str(sum(t_pts[t])), sc_fs * 2, scorescx, scorescy)
-                        else:
-                            self.draw_text(str(p_strings[t]), sc_fs, stringscx, stringscy)
-                            self.draw_scores(str(sum(p_pts[t])), sc_fs * 2, scorescx, scorescy)
+                    # for t in range(team_no):
+                    #     sc_fs = 30
+                    #     stringscx = MATDR_EX + 250
+                    #     stringscy = tot_scores_y + 50 + t * 50
+                    #     scorescx = MATDR_EX + 450
+                    #     scorescy = stringscy
+                    #     if team_bool:
+                    #         scorescx = MATDR_EX + 500
+                    #         self.draw_text(str(t_strings[t]), sc_fs, stringscx, stringscy)
+                    #         self.draw_scores(str(sum(t_pts[t])), sc_fs * 2, scorescx, scorescy)
+                    #     else:
+                    #         self.draw_text(str(p_strings[t]), sc_fs, stringscx, stringscy)
+                    #         self.draw_scores(str(sum(p_pts[t])), sc_fs * 2, scorescx, scorescy)
 
                 self.window.blit(self.display, (0, 0))
                 pygame.display.update()
@@ -1079,6 +1121,31 @@ class Game():
                         print("drawing x")
 
 ################################# End of shot tracking #################################
+                # Play sounds if holed
+                if hole_bool:
+                    if sum(streak_count_a[p_ind - 1]) == 5:
+                        self.sounds["dontmiss"].play()
+                    elif small_hole_bool:
+                        self.sounds["hole1"].play()
+                    elif big_hole_bool:
+                        self.sounds["hole2"].play()
+                elif miss_bool:
+                    # if sum(missed_strk_cnt_a[p_ind - 1]) == 1:
+                    #     self.sounds["sadsong"].play()
+                    # else:
+                    self.sounds["miss"].play()
+
+                if game_mode == "T" and shot_bool and not timer_started:
+                    while not done:
+                        if passed_time == 30:
+                            pygame.time.wait(5000)
+                            done = True
+                        if not timer_started:
+                            start_time = pg.time.get_ticks()
+                            timer_started = True
+                if timer_started:
+                    passed_time = pg.time.get_ticks() - start_time
+                    shown_time = 30 - passed_time
 
                 # if shot has ended
                 if miss_bool or hole_bool:
@@ -1098,12 +1165,16 @@ class Game():
                             H_count_a[player].append(1)
                             missed_strk_cnt_a[player].clear()
                         if small_hole_bool:
+                            streak_count_s[player].append(1)
+                            streak_count_b[player].clear()
                             H1_count_a[player].append(1)
                             p_pts[p_ind - 1].append(s_pts)
                             for team in range(team_no):
                                 if p_ind in teams[team]:
                                     t_pts[team].append(s_pts)
                         elif big_hole_bool:
+                            streak_count_b[player].append(1)
+                            streak_count_s[player].clear()
                             H2_count_a[player].append(1)
                             p_pts[p_ind - 1].append(b_pts)
                             for team in range(team_no):
@@ -1113,6 +1184,8 @@ class Game():
                             missed_count_a[player].append(1)
                             missed_strk_cnt_a[player].append(1)
                             streak_count_a[player].clear()
+                            streak_count_b[player].clear()
+                            streak_count_s[player].clear()
                             p_pts[player].append(0)
                             for team in range(team_no):
                                 if p_ind in teams[team]:
@@ -1130,8 +1203,28 @@ class Game():
                                 pps_a[player].append(pps_temp)
                         # record maximum streak for each player
                         max_str_temp = sum(streak_count_a[player])
+                        if max_str_temp < sum(streak_count_b[player]):
+                            max_str_temp = sum(streak_count_b[player])
+                        if max_str_temp < sum(streak_count_s[player]):
+                            max_str_temp = sum(streak_count_s[player])
                         if max_str_temp > max_streak_a[player][0]:
                             max_streak_a[player][0] = max_str_temp
+                        # Check if we need to update highscores text file
+                        if sum(streak_count_s[player]) > streakHS[0]:
+                            streakHS[0] = sum(streak_count_s[player])
+                            with open("streakHS.txt", "w") as f:
+                                for i in streakHS:
+                                    f.write(str(i) +"\n")
+                        if sum(streak_count_b[player]) > streakHS[1]:
+                            streakHS[1] = sum(streak_count_b[player])
+                            with open("streakHS.txt", "w") as f:
+                                for i in streakHS:
+                                    f.write(str(i) +"\n")
+                        if sum(streak_count_a[player]) > streakHS[2]:
+                            streakHS[2] = sum(streak_count_a[player])
+                            with open("streakHS.txt", "w") as f:
+                                for i in streakHS:
+                                    f.write(str(i) +"\n")
                         #play sound if impressive streak reached
 
 
@@ -1145,25 +1238,13 @@ class Game():
                     stats_a[player][7] = sum(H1_count_a[player])
                     stats_a[player][8] = sum(H2_count_a[player])
 
-                # Play sounds if holed
-                if hole_bool:
-                    if sum(streak_count_a[p_ind - 1]) == 5:
-                        self.sounds["dontmiss"].play()
-                    elif small_hole_bool:
-                        self.sounds["hole1"].play()
-                    elif big_hole_bool:
-                        self.sounds["hole2"].play()
-                elif miss_bool:
-                    # if sum(missed_strk_cnt_a[p_ind - 1]) == 1:
-                    #     self.sounds["sadsong"].play()
-                    # else:
-                        self.sounds["miss"].play()
+
 
 ################################# End of stats calculation #################################
 
                 # loop to find indicator for next player/team turn
                 if (game_mode == "P" and (miss_bool or hole_bool) and p_shots == shotspround) or \
-                        (game_mode == "T" and t_started and time_count == 0):
+                        (game_mode == "T" and done):
 
                     H1_rndcount_a[p_ind - 1] = 0
                     H2_rndcount_a[p_ind - 1] = 0
@@ -1172,9 +1253,10 @@ class Game():
                     t_rndcount_a[p_ind - 1] = 0
 
                     if game_mode == "T":
+                        shown_time = 30
+                        passed_time = 0
                         timers_done += 1
-                        t_started = False
-                        t_ended = True
+                        timer_started = False
 
                     p_rnd_comp[p_ind - 1] = int(p_rnd_comp[p_ind - 1]) + 1
                     p_shots = 0
