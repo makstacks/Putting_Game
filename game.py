@@ -451,9 +451,9 @@ class Game():
         self.font_name = '8-BIT WONDER.TTF'
         self.font_name2 = 'Pixeboy.TTF'
         #self.font_name = pygame.font.get_default_font()
-        self.BLACK, self.WHITE, self.GREEN, self.RED, self.PURPLE, self.ORANGE, self.BLUE, self.CORAL, self.GRAY =\
-            (0, 0, 0), (255, 255, 255), (0, 154, 23), (255, 0, 0), (147, 112, 219), (255, 140, 0), (100, 149, 237),\
-            (255, 127, 80), (169, 169, 169)
+        self.BLACK, self.WHITE, self.GREEN, self.RED, self.PURPLE, self.ORANGE, self.BLUE, self.CORAL, self.GRAY,\
+        self.BROWN = (0, 0, 0), (255, 255, 255), (0, 154, 23), (255, 0, 0), (147, 112, 219), (255, 140, 0), \
+                     (100, 149, 237), (255, 127, 80), (169, 169, 169), (152, 80, 60)
         self.team_colours = [self.GREEN, self.CORAL, self.BLUE, self.GRAY, self.ORANGE, self.PURPLE]
         self.main_menu = MainMenu(self)
         self.game_select = GameSelect(self)
@@ -798,7 +798,6 @@ class Game():
             timer_started = False
             done = False
 
-
             stats_strings = ["", "Holes", "Shots", "%", "Points", "PPS", "Max.Strk", "Hole 1", "Hole 2"]
 
             count = 0
@@ -816,6 +815,7 @@ class Game():
                 # Draw scoreboard
                 self.display.fill(self.BLACK)
                 self.draw_text(game_string, 40, self.DISPLAY_W/2, 50)
+                pygame.draw.rect(self.display, self.BROWN, pygame.Rect(MATDR_EX + 15, 630, 570, 65))
                 # Add info for current streaks and highscores
                 self.draw_scores("Current Streaks", 50, stx_x, stx_y)
                 self.draw_scores(str(sum(streak_count_s[p_ind - 1])), 65, sths1_x, stcs_y)
