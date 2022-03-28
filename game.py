@@ -21,10 +21,12 @@ class Menu():
         self.mid_w, self.mid_h = self.game.DISPLAY_W / 2, self.game.DISPLAY_H / 2
         self.run_display = True
         self.cursor_rect = pygame.Rect(0, 0, 20, 20)
-        self.offset = - 180
+        self.offset = - 220
 
     def draw_cursor(self):
-        self.game.draw_text('*', 60, self.cursor_rect.x, self.cursor_rect.y)
+        # self.game.draw_text_black('*', 70, self.cursor_rect.x, self.cursor_rect.y)
+        # self.game.draw_text('*', 60, self.cursor_rect.x, self.cursor_rect.y)
+        self.game.draw_text_outline('*', 60, self.cursor_rect.x, self.cursor_rect.y)
 
     def blit_screen(self):
         self.game.window.blit(self.game.display, (0, 0))
@@ -50,11 +52,11 @@ class MainMenu(Menu):
             self.check_input()
             self.game.display.fill(self.game.BLACK)
             self.game.display.blit(BACKGROUND, (0, 0))
-            self.game.draw_text_with_rect('Main Menu', self.titfs, SCREEN_WIDTH / 2, self.titfs, self.game.GREEN)
-            self.game.draw_text_with_rect("Start Game", self.subfs, self.startx, self.starty, self.game.GREEN)
-            self.game.draw_text_with_rect("Free Play", self.subfs, self.free_playx, self.free_playy, self.game.GREEN)
-            self.game.draw_text_with_rect("Options", self.subfs, self.optionsx, self.optionsy, self.game.GREEN)
-            self.game.draw_text_with_rect("Credits", self.subfs, self.creditsx, self.creditsy, self.game.GREEN)
+            self.game.draw_text_outline('Main Menu', self.titfs + 5, SCREEN_WIDTH / 2, round(1.5 * self.titfs))
+            self.game.draw_text_outline("Start Game", self.subfs, self.startx, self.starty)
+            self.game.draw_text_outline("Free Play", self.subfs, self.free_playx, self.free_playy)
+            self.game.draw_text_outline("Options", self.subfs, self.optionsx, self.optionsy)
+            self.game.draw_text_outline("Credits", self.subfs, self.creditsx, self.creditsy)
             self.draw_cursor()
             self.blit_screen()
 
@@ -182,21 +184,19 @@ class GameSelect(Menu):
             #gm_inputs = ["P", 2, 2, 3, 3]
             self.game.display.fill((0, 0, 0))
             self.game.display.blit(BACKGROUND, (0, 0))
-            self.game.draw_text_with_rect('Game Selection', self.titfs, self.game.DISPLAY_W / 2, self.titfs, self.game.GREEN)
+            self.game.draw_text_outline('Game Selection', self.titfs, self.game.DISPLAY_W / 2, round(1.5 * self.titfs))
             if self.inputs[0] == 2:
-                self.game.draw_text_with_rect("Points Game", self.subfs, self.gmmdx, self.gmmdy, self.game.GREEN)
+                self.game.draw_text_outline("Points Game", self.subfs, self.gmmdx, self.gmmdy)
             elif self.inputs[0] == 3:
-                self.game.draw_text_with_rect("Timer", self.subfs, self.gmmdx, self.gmmdy, self.game.GREEN)
+                self.game.draw_text_outline("Timer", self.subfs, self.gmmdx, self.gmmdy)
             elif self.inputs[0] == 1:
-                self.game.draw_text_with_rect("Free Play", self.subfs, self.gmmdx, self.gmmdy, self.game.GREEN)
+                self.game.draw_text_outline("Free Play", self.subfs, self.gmmdx, self.gmmdy)
             if self.inputs[1] > 1:
-                self.game.draw_text_with_rect(str(self.inputs[1]) + " Players", self.subfs, self.numpx, self.numpy,
-                                              self.game.GREEN)
+                self.game.draw_text_outline(str(self.inputs[1]) + " Players", self.subfs, self.numpx, self.numpy)
             else:
-                self.game.draw_text_with_rect(str(self.inputs[1]) + " Player", self.subfs, self.numpx, self.numpy,
-                                              self.game.GREEN)
+                self.game.draw_text_outline(str(self.inputs[1]) + " Player", self.subfs, self.numpx, self.numpy)
             if self.inputs[1] != 1:
-                self.game.draw_text_with_rect(self.teamvstring, self.subfs, self.teamsx, self.teamsy, self.game.GREEN)
+                self.game.draw_text_outline(self.teamvstring, self.subfs, self.teamsx, self.teamsy)
             #self.game.draw_text("3 Rounds", 15, self.roundsx, self.roundsy)
             self.draw_cursor()
             self.blit_screen()
@@ -401,9 +401,9 @@ class OptionsMenu(Menu):
             self.check_input()
             self.game.display.fill((0, 0, 0))
             self.game.display.blit(BACKGROUND, (0, 0))
-            self.game.draw_text_with_rect('Options', self.titfs, self.game.DISPLAY_W / 2, self.titfs, self.game.GREEN)
-            self.game.draw_text_with_rect("Volume", self.subfs, self.volx, self.voly, self.game.GREEN)
-            self.game.draw_text_with_rect("Controls", self.subfs, self.controlsx, self.controlsy, self.game.GREEN)
+            self.game.draw_text_outline('Options', self.titfs, self.game.DISPLAY_W / 2, round(1.5 * self.titfs))
+            self.game.draw_text_outline("Volume", self.subfs, self.volx, self.voly)
+            self.game.draw_text_outline("Controls", self.subfs, self.controlsx, self.controlsy)
             self.draw_cursor()
             self.blit_screen()
 
@@ -435,7 +435,7 @@ class CreditsMenu(Menu):
                 self.run_display = False
             self.game.display.fill(self.game.BLACK)
             self.game.display.blit(BACKGROUND, (0, 0))
-            self.game.draw_text('Credits', self.titfs, self.game.DISPLAY_W / 2, self.titfs)
+            self.game.draw_text('Credits', self.titfs, self.game.DISPLAY_W / 2, round(1.5 * self.titfs))
             self.game.draw_text_with_rect('Made by me', self.subfs, SCREEN_WIDTH / 2, SCREEN_HEIGHT /2, self.game.GREEN)
             self.blit_screen()
 
@@ -791,7 +791,7 @@ class Game():
             sths2_x = sths1_x + 120
             sths3_x = sths2_x + 125
             holes_y = round((sths_y + stcs_y )/ 2)
-            
+
             # Setting up timer
             passed_time = 0
             shown_time = 30
@@ -816,24 +816,24 @@ class Game():
                 # Draw scoreboard
                 self.display.fill(self.BLACK)
                 self.draw_text(game_string, 40, self.DISPLAY_W/2, 50)
+                # Add info for current streaks and highscores
+                self.draw_scores("Current Streaks", 50, stx_x, stx_y)
+                self.draw_scores(str(sum(streak_count_s[p_ind - 1])), 65, sths1_x, stcs_y)
+                self.draw_scores(str(sum(streak_count_b[p_ind - 1])), 65, sths2_x, stcs_y)
+                self.draw_scores(str(sum(streak_count_a[p_ind - 1])), 65, sths3_x, stcs_y)
+                pygame.draw.circle(self.display, self.WHITE, (sths1_x, holes_y), 7)
+                pygame.draw.circle(self.display, self.WHITE, (sths2_x, holes_y), 12)
+                pygame.draw.circle(self.display, self.WHITE, (sths3_x - 15, holes_y), 7)
+                pygame.draw.circle(self.display, self.WHITE, (sths3_x + 15, holes_y), 12)
+                self.draw_scores("HIGHSCORES:", 45, sths_x, sths_y)
+                self.draw_scores(str(streakHS[0]), 65, sths1_x, sths_y)
+                self.draw_scores(str(streakHS[1]), 65, sths2_x, sths_y)
+                self.draw_scores(str(streakHS[2]), 65, sths3_x, sths_y)
+
                 if game_mode != "F":
                     self.draw_text(team_string, 20, round(self.DISPLAY_W/8), 25)
                     self.draw_text("Rounds " + str(rounds), 20, self.DISPLAY_W/8, 50)
                     self.draw_text("Shots  " + str(shotspround), 20, self.DISPLAY_W/8, 75)
-                else:
-                    self.draw_scores("Current Streaks", 50, stx_x, stx_y)
-                    self.draw_scores(str(sum(streak_count_s[p_ind - 1])), 65, sths1_x, stcs_y)
-                    self.draw_scores(str(sum(streak_count_b[p_ind - 1])), 65, sths2_x, stcs_y)
-                    self.draw_scores(str(sum(streak_count_a[p_ind - 1])), 65, sths3_x, stcs_y)
-                    pygame.draw.circle(self.display, self.WHITE, (sths1_x, holes_y), 7)
-                    pygame.draw.circle(self.display, self.WHITE, (sths2_x, holes_y), 12)
-                    pygame.draw.circle(self.display, self.WHITE, (sths3_x - 15, holes_y), 7)
-                    pygame.draw.circle(self.display, self.WHITE, (sths3_x + 15, holes_y), 12)
-                    self.draw_scores("HIGHSCORES:", 45, sths_x, sths_y)
-                    self.draw_scores(str(streakHS[0]), 65, sths1_x, sths_y)
-                    self.draw_scores(str(streakHS[1]), 65, sths2_x, sths_y)
-                    self.draw_scores(str(streakHS[2]), 65, sths3_x, sths_y)
-
 
                 if game_mode == "T":
                     self.draw_text(str(shown_time), 40, round(7 * self.DISPLAY_W/8), 600)
@@ -854,7 +854,9 @@ class Game():
 
                 # Draw box to indicate player turn
                 pygame.draw.rect(self.display, self.WHITE, pygame.Rect(round(SCORECARD_X_INDENT),
-                round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 5)
+                    round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 8)
+                pygame.draw.rect(self.display, self.BLACK, pygame.Rect(round(SCORECARD_X_INDENT),
+                    round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 3)
                 # Draw mat holes etc. on scoreboard
                 pygame.draw.rect(self.display, self.GREEN, pygame.Rect(MATDR_SX, MATDR_SY, L_MATDR, W_MATDR))
                 pygame.draw.circle(self.display, self.BLACK, (H1DRX, H1DRY), HR1)
@@ -875,6 +877,8 @@ class Game():
                 p_txt = 60
                 self.draw_text_with_rect(p_strings[p_ind - 1], p_txt, round(MATDR_EX + 2*p_txt),
                                          round(MATDR_SY + p_txt), p_colour[p_ind - 1])
+                # pygame.draw.rect(self.display, self.WHITE, pygame.Rect(round(MATDR_EX + 2*p_txt),
+                #                         round(MATDR_SY + p_txt), p_txt, p_txt), 6)
                 if game_mode != "F":
                     for ball in range(shotspround):
                         ball_rad = round(HR1 / 2)
@@ -1434,9 +1438,21 @@ class Game():
         text_rect.center = (x,y)
         self.display.blit(text_surface,text_rect)
 
-    def draw_text_fontcol(self, text, size, x, y, colour):
+    def draw_text_black(self, text, size, x, y):
         font = pygame.font.Font(self.font_name,size)
-        text_surface = font.render(text, True, colour)
+        text_surface = font.render(text, True, self.BLACK)
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x,y)
+        self.display.blit(text_surface,text_rect)
+
+    def draw_text_outline(self, text, size, x, y):
+        font = pygame.font.Font(self.font_name, round(size * 1.07))
+        text_surface = font.render(text, True, self.BLACK)
+        text_rect = text_surface.get_rect()
+        text_rect.center = (x,y)
+        self.display.blit(text_surface,text_rect)
+        font = pygame.font.Font(self.font_name, size)
+        text_surface = font.render(text, True, self.WHITE)
         text_rect = text_surface.get_rect()
         text_rect.center = (x,y)
         self.display.blit(text_surface,text_rect)
