@@ -486,6 +486,7 @@ class Game():
         team_no = gm_inputs[2]
         rounds = gm_inputs[3]
         shotspround = gm_inputs[4]
+        shotspround = 1
         if gmode_int == 1:
             game_mode = "F"
         elif gmode_int == 2:
@@ -743,9 +744,9 @@ class Game():
             STATS_SHOWN = 7
             TITLE_Y_DIST = 100
             UNDER_Y_DIST = 250
-            STAT_HEAD_Y_DIST = 50
+            STAT_HEAD_Y_DIST = 70
             STAT_HEAD_Y_START = round(TITLE_Y_DIST + STAT_HEAD_Y_DIST / 2)
-            SCORES_Y_DIST = SCREEN_HEIGHT - TITLE_Y_DIST - UNDER_Y_DIST - STAT_HEAD_Y_DIST
+            SCORES_Y_DIST = SCREEN_HEIGHT - TITLE_Y_DIST - UNDER_Y_DIST - STAT_HEAD_Y_DIST - 30
             SCORECARD_X_INDENT = 50
             DIST_X_SCORE = SCREEN_WIDTH - SCORECARD_X_INDENT * 2
             ST_DIST = round(DIST_X_SCORE / STATS_SHOWN)
@@ -758,6 +759,7 @@ class Game():
             MATDR_SY = round((SCREEN_HEIGHT - UNDER_Y_DIST) + ((UNDER_Y_DIST - W_MATDR) / 2))
             MATDR_EX = MATDR_SX + L_MATDR
             MATDR_EY = MATDR_SY + W_MATDR
+            MAT_XMID = MATDR_SX + round((MATDR_EX - MATDR_SX) / 2)
             T_SCORESX_ST = MATDR_EX + SCORECARD_X_INDENT * 2
             T_SCORESX = round(SCREEN_WIDTH - L_MATDR - 2 * SCORECARD_X_INDENT)
             T_SCORESY = L_MATDR
@@ -782,26 +784,29 @@ class Game():
             P_X_START = round(SCORECARD_X_INDENT + ST_DIST / 2)
             P_Y_START = round(TITLE_Y_DIST + STAT_HEAD_Y_DIST + P_Y_SPLIT / 2)
 
-            stx_x = 1040
-            stx_y = 510
-            stcs_y = 555
+            stx_x = 1045
+            stx_y = 490
+            stcs_y = 540
             sths_y = 660
             sths_x = 780
             sths1_x = 930
             sths2_x = sths1_x + 120
             sths3_x = sths2_x + 125
-            holes_y = round((sths_y + stcs_y )/ 2)
+            holes_y = round((sths_y + stcs_y )/ 2) - 20
 
             # Setting up timer
             passed_time = 0
             shown_time = 30
             timer_started = False
             done = False
+            ptime = 0
+            stime = 0
+            ccount = 0.5
 
             stats_strings = ["", "Holes", "Shots", "%", "Points", "PPS", "Max.Strk", "Hole 1", "Hole 2"]
 
             count = 0
-################ Start of while loop to track shots ##################
+            ################ Start of while loop to track shots ##################
             while self.cap.isOpened():
                 # Initialise various boolean statements for tracking shots
                 miss_bool = False
@@ -812,10 +817,13 @@ class Game():
                 small_hole_bool = False
                 big_hole_bool = False
                 hole_bool = False
+
                 # Draw scoreboard
                 self.display.fill(self.BLACK)
+
                 self.draw_text(game_string, 40, self.DISPLAY_W/2, 50)
                 pygame.draw.rect(self.display, self.BROWN, pygame.Rect(MATDR_EX + 15, 630, 570, 65))
+
                 # Add info for current streaks and highscores
                 self.draw_scores("Current Streaks", 50, stx_x, stx_y)
                 self.draw_scores(str(sum(streak_count_s[p_ind - 1])), 65, sths1_x, stcs_y)
@@ -829,34 +837,6 @@ class Game():
                 self.draw_scores(str(streakHS[0]), 65, sths1_x, sths_y)
                 self.draw_scores(str(streakHS[1]), 65, sths2_x, sths_y)
                 self.draw_scores(str(streakHS[2]), 65, sths3_x, sths_y)
-
-                if game_mode != "F":
-                    self.draw_text(team_string, 20, round(self.DISPLAY_W/8), 25)
-                    self.draw_text("Rounds " + str(rounds), 20, self.DISPLAY_W/8, 50)
-                    self.draw_text("Shots  " + str(shotspround), 20, self.DISPLAY_W/8, 75)
-
-                if game_mode == "T":
-                    self.draw_text(str(shown_time), 40, round(7 * self.DISPLAY_W/8), 600)
-                for p in range(num_players):
-                    for t in range(team_no):
-                        if p + 1 in teams[t]:
-                            p_colour[p] = self.team_colours[t]
-                    # Draw rect representing team by colour
-                    pygame.draw.rect(self.display, p_colour[p], pygame.Rect(round(SCORECARD_X_INDENT),
-                        round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT))
-                    pygame.draw.rect(self.display, p_colour[p], pygame.Rect(round(SCORECARD_X_INDENT),
-                        round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT), 3)
-                    for s in range(STATS_SHOWN):
-                        # Draw scores/stats for each player
-                        self.draw_scores(str(stats_a[p][s]), 50, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
-                        if s < len(stats_strings):
-                            self.draw_scores(str(stats_strings[s]), 50, round(P_X_START + ST_DIST * s), STAT_HEAD_Y_START)
-
-                # Draw box to indicate player turn
-                pygame.draw.rect(self.display, self.WHITE, pygame.Rect(round(SCORECARD_X_INDENT),
-                    round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 8)
-                pygame.draw.rect(self.display, self.BLACK, pygame.Rect(round(SCORECARD_X_INDENT),
-                    round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 3)
                 # Draw mat holes etc. on scoreboard
                 pygame.draw.rect(self.display, self.GREEN, pygame.Rect(MATDR_SX, MATDR_SY, L_MATDR, W_MATDR))
                 pygame.draw.circle(self.display, self.BLACK, (H1DRX, H1DRY), HR1)
@@ -873,13 +853,34 @@ class Game():
                 if bholesinrnd > 0:
                     self.draw_text("x" + str(bholesinrnd), 20, H2DRX, H2DRY)
 
-                # Draw balls and player indicator on mat
-                p_txt = 60
-                self.draw_text_with_rect(p_strings[p_ind - 1], p_txt, round(MATDR_EX + 2*p_txt),
-                                         round(MATDR_SY + p_txt), p_colour[p_ind - 1])
-                # pygame.draw.rect(self.display, self.WHITE, pygame.Rect(round(MATDR_EX + 2*p_txt),
-                #                         round(MATDR_SY + p_txt), p_txt, p_txt), 6)
                 if game_mode != "F":
+                    self.draw_text(team_string, 20, round(self.DISPLAY_W/8), 25)
+                    self.draw_text("Rounds " + str(rounds), 20, self.DISPLAY_W/8, 50)
+                    self.draw_text("Shots  " + str(shotspround), 20, self.DISPLAY_W/8, 75)
+
+                if game_mode == "T":
+                    self.draw_text(str(shown_time), 40, 550, 600)
+
+                for p in range(num_players):
+                    for t in range(team_no):
+                        if p + 1 in teams[t]:
+                            p_colour[p] = self.team_colours[t]
+                    # Draw rect representing team by colour
+                    pygame.draw.rect(self.display, p_colour[p], pygame.Rect(round(SCORECARD_X_INDENT),
+                        round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT))
+                    pygame.draw.rect(self.display, p_colour[p], pygame.Rect(round(SCORECARD_X_INDENT),
+                        round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT), 3)
+                    for s in range(STATS_SHOWN):
+                        # Draw player names
+                        if s == 0:
+                            self.draw_text_outline(str(stats_a[p][s]), 50, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
+                        # Draw scores/stats for each player
+                        else:
+                            self.draw_scores(str(stats_a[p][s]), 50, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
+                        if s < len(stats_strings):
+                            self.draw_scores(str(stats_strings[s]), 50, round(P_X_START + ST_DIST * s), STAT_HEAD_Y_START)
+
+                if game_mode == "P":
                     for ball in range(shotspround):
                         ball_rad = round(HR1 / 2)
                         ball_xpos = round(MATDR_SX + 7 * L_MATDR / 8)
@@ -894,6 +895,7 @@ class Game():
                             fsind = 40
                             self.draw_ind("<", fsind, ball_xpos + ball_rad + fsind / 2, ball_ypos)
                             pygame.draw.circle(self.display, self.BLACK, (ball_xpos, ball_ypos), ball_rad + 2, 4)
+                    self.draw_text_outline("ROUND " + str(cur_rnd), 35, MAT_XMID, 520)
                     # Draw on total scores in bottom right
                     tot_scores_x = round(MATDR_EX + 150)
                     tot_scores_y = MATDR_SY
@@ -911,6 +913,21 @@ class Game():
                     #     else:
                     #         self.draw_text(str(p_strings[t]), sc_fs, stringscx, stringscy)
                     #         self.draw_scores(str(sum(p_pts[t])), sc_fs * 2, scorescx, scorescy)
+
+                # stime = pg.time.get_ticks()
+                # ptime = pg.time.get_ticks() - stime
+                # if ptime > ccount:
+                #     self.draw_text(game_string, 40, 700, 50)
+                #     ccount += 0.5
+
+                # Draw box to indicate player turn
+                pygame.draw.rect(self.display, self.WHITE, pygame.Rect(round(SCORECARD_X_INDENT),
+                        round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * (p_ind - 1)), DIST_X_SCORE, P_Y_SPLIT), 8)
+
+                # Draw balls and player indicator on mat
+                p_txt = 60
+                self.draw_text_with_rect(p_strings[p_ind - 1], p_txt, round(MATDR_EX + 2*p_txt),
+                                         round(MATDR_SY + p_txt - 20), p_colour[p_ind - 1])
 
                 self.window.blit(self.display, (0, 0))
                 pygame.display.update()
@@ -1145,10 +1162,10 @@ class Game():
                             pygame.time.wait(5000)
                             done = True
                         if not timer_started:
-                            start_time = pg.time.get_ticks()
+                            start_time = pygame.time.get_ticks()
                             timer_started = True
                 if timer_started:
-                    passed_time = pg.time.get_ticks() - start_time
+                    passed_time = pygame.time.get_ticks() - start_time
                     shown_time = 30 - passed_time
 
                 # if shot has ended
@@ -1290,29 +1307,27 @@ class Game():
                         if not team_bool:
                             winning_pts = sum(p_pts[0])
                             winning_p = 1
-                            for i in range(len(p_pts)):
+                            for i in range(num_players):
                                 if sum(p_pts[i]) > winning_pts:
                                     winning_pts = sum(p_pts[i])
                                     winning_p = i + 1
-                                elif sum(p_pts[i]) > winning_pts:
-                                    winning_pts = 0
+                                elif sum(p_pts[i]) == winning_pts:
                                     winning_p = 0
                             if winning_p > 0:
-                                print("winner")
+                                print("\nWINNER\nPlayer " + str(winning_p))
                             else:
                                 print("draw")
                         elif team_bool:
                             winning_pts = sum(t_pts[0])
                             winning_p = 1
-                            for i in range(len(t_pts)):
+                            for i in range(team_no):
                                 if sum(t_pts[i]) > winning_pts:
-                                    winning_pts = sum(p_pts[i])
+                                    winning_pts = sum(t_pts[i])
                                     winning_p = i + 1
-                                elif sum(p_pts[i]) > winning_pts:
-                                    winning_pts = 0
+                                elif sum(t_pts[i]) == winning_pts:
                                     winning_p = 0
                             if winning_p > 0:
-                                print("winner")
+                                print("\nWINNER\nTeam " + str(i+1))
                             else:
                                 print("draw")
 
@@ -1320,8 +1335,6 @@ class Game():
                         if k1 == 13:  # wait for ENTER key to proceed
                             # self.cap.release()
                             cv2.destroyAllWindows()
-
-
 
                 if total_holes > 0:
                     shot_pcnt = int(round(100 * (total_holes) / (total_holes + missed_count)))
