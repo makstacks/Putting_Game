@@ -485,6 +485,7 @@ class Game():
         num_players = gm_inputs[1]
         team_no = gm_inputs[2]
         rounds = gm_inputs[3]
+        rounds = 1
         shotspround = gm_inputs[4]
         shotspround = 1
         if gmode_int == 1:
@@ -817,6 +818,7 @@ class Game():
                 small_hole_bool = False
                 big_hole_bool = False
                 hole_bool = False
+                total_holes = hole1_count + hole2_count
 
                 # Draw scoreboard
                 self.display.fill(self.BLACK)
@@ -853,7 +855,7 @@ class Game():
                 if bholesinrnd > 0:
                     self.draw_text("x" + str(bholesinrnd), 20, H2DRX, H2DRY)
 
-                if game_mode != "F":
+                if game_mode != "F" and cur_rnd <= rounds:
                     self.draw_text(team_string, 20, round(self.DISPLAY_W/8), 25)
                     self.draw_text("Rounds " + str(rounds), 20, self.DISPLAY_W/8, 50)
                     self.draw_text("Shots  " + str(shotspround), 20, self.DISPLAY_W/8, 75)
@@ -872,8 +874,11 @@ class Game():
                         round(P_Y_START - P_Y_SPLIT / 2 + P_Y_SPLIT * p), DIST_X_SCORE, P_Y_SPLIT), 3)
                     for s in range(STATS_SHOWN):
                         # Draw player names
+                        plfs = 50
+                        if num_players > 4:
+                            plfs = 40
                         if s == 0:
-                            self.draw_text_outline(str(stats_a[p][s]), 50, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
+                            self.draw_text_outline(str(stats_a[p][s]), plfs, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
                         # Draw scores/stats for each player
                         else:
                             self.draw_scores(str(stats_a[p][s]), 50, P_X_START + s * ST_DIST, round(P_Y_START + p * P_Y_SPLIT))
@@ -895,7 +900,8 @@ class Game():
                             fsind = 40
                             self.draw_ind("<", fsind, ball_xpos + ball_rad + fsind / 2, ball_ypos)
                             pygame.draw.circle(self.display, self.BLACK, (ball_xpos, ball_ypos), ball_rad + 2, 4)
-                    self.draw_text_outline("ROUND " + str(cur_rnd), 35, MAT_XMID, 520)
+                    if cur_rnd <= rounds:
+                        self.draw_text_outline("ROUND " + str(cur_rnd), 35, MAT_XMID, 520)
                     # Draw on total scores in bottom right
                     tot_scores_x = round(MATDR_EX + 150)
                     tot_scores_y = MATDR_SY
@@ -931,6 +937,41 @@ class Game():
 
                 self.window.blit(self.display, (0, 0))
                 pygame.display.update()
+
+                # if game finished we want to find winner after having drawn on scores
+                if (game_mode == "P" and total_holes + missed_count == num_players * shotspround * rounds) \
+                        or (game_mode == "T" and timers_done == num_players):
+                    if not team_bool:
+                        winning_pts = 0
+                        winning_p = 1
+                        for i in range(num_players):
+                            if sum(p_pts[i]) > winning_pts:
+                                winning_pts = sum(p_pts[i])
+                                winning_p = i + 1
+                            elif sum(p_pts[i]) == winning_pts:
+                                winning_p = 0
+                        if winning_p > 0:
+                            print("\nWINNER\nPlayer " + str(winning_p))
+                        else:
+                            print("draw")
+                    elif team_bool:
+                        winning_pts = 0
+                        winning_p = 1
+                        for i in range(team_no):
+                            if sum(t_pts[i]) > winning_pts:
+                                winning_pts = sum(t_pts[i])
+                                winning_p = i + 1
+                            elif sum(t_pts[i]) == winning_pts:
+                                winning_p = 0
+                        if winning_p > 0:
+                            print("\nWINNER\nTeam " + str(i+1))
+                        else:
+                            print("draw")
+
+                    k1 = cv2.waitKey(0)
+                    if k1 == 13:  # wait for ENTER key to proceed
+                        #self.cap.release()
+                        cv2.destroyAllWindows()
 
                 ret, frame = self.cap.read()
 
@@ -1172,7 +1213,7 @@ class Game():
                 if miss_bool or hole_bool:
                     shot_bool = False
 
-                total_holes = hole1_count + hole2_count
+
                 sum_points = sum(p_pts[0])
                 # Recording holes/misses in current round
                 H_rndcount_a[p_ind - 1] = H1_rndcount_a[p_ind - 1] + H2_rndcount_a[p_ind - 1]
@@ -1300,41 +1341,6 @@ class Game():
                             break
                         elif posit == 0 and shot_count_a[p_ind - 1] == shot_count_a[teams[t_ind - 1][-1] - 1]:
                             break
-
-                    # if game finished we want to find winner
-                    if (game_mode == "P" and total_holes + missed_count == num_players * shotspround * rounds) \
-                            or (game_mode == "T" and timers_done == num_players):
-                        if not team_bool:
-                            winning_pts = sum(p_pts[0])
-                            winning_p = 1
-                            for i in range(num_players):
-                                if sum(p_pts[i]) > winning_pts:
-                                    winning_pts = sum(p_pts[i])
-                                    winning_p = i + 1
-                                elif sum(p_pts[i]) == winning_pts:
-                                    winning_p = 0
-                            if winning_p > 0:
-                                print("\nWINNER\nPlayer " + str(winning_p))
-                            else:
-                                print("draw")
-                        elif team_bool:
-                            winning_pts = sum(t_pts[0])
-                            winning_p = 1
-                            for i in range(team_no):
-                                if sum(t_pts[i]) > winning_pts:
-                                    winning_pts = sum(t_pts[i])
-                                    winning_p = i + 1
-                                elif sum(t_pts[i]) == winning_pts:
-                                    winning_p = 0
-                            if winning_p > 0:
-                                print("\nWINNER\nTeam " + str(i+1))
-                            else:
-                                print("draw")
-
-                        k1 = cv2.waitKey(0)
-                        if k1 == 13:  # wait for ENTER key to proceed
-                            # self.cap.release()
-                            cv2.destroyAllWindows()
 
                 if total_holes > 0:
                     shot_pcnt = int(round(100 * (total_holes) / (total_holes + missed_count)))
